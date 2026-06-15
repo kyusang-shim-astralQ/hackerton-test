@@ -1,12 +1,12 @@
 # 01 · 파운데이션 (스캐폴드) — 먼저 실행
 
-> 사용법: 새 Claude Code 세션을 `c:/Users/ks030/Desktop/backend`에서 열고, 아래 "프롬프트" 블록 전체를 붙여넣으세요.
+> 사용법: 새 Claude Code 세션을 **repo 루트**에서 열고, 아래 "프롬프트" 블록 전체를 붙여넣으세요.
 
 ---
 
 ## 프롬프트
 
-너는 CP2K(양자화학 DFT) 시뮬레이션 에이전트의 **새 프런트엔드**를 만든다. 확정 디자인은 "Lab Paper"이고, 이미 작동하는 FastAPI 백엔드(`c:/Users/ks030/Desktop/backend`, 포트 8000)에 연결한다. 이 작업은 **공유 파운데이션 스캐폴드**만 만든다(개별 기능 화면은 이후 프롬프트가 채움).
+너는 CP2K(양자화학 DFT) 시뮬레이션 에이전트의 **새 프런트엔드**를 만든다. 확정 디자인은 "Lab Paper"이고, 백엔드(`backend/`, 포트 8000 — be-* 프롬프트로 함께 빌드)에 연결한다. 이 작업은 **공유 파운데이션 스캐폴드**만 만든다(개별 기능 화면은 이후 프롬프트가 채움).
 
 ### 먼저 읽어라 (단일 소스 오브 트루스)
 - `docs/design-system.md` — 토큰(§2), 레이아웃 3-존 콕핏(§4), **CSS 함정(§4.5)**, 컴포넌트 카탈로그(§3), 파일 배치(§1.2).
@@ -14,7 +14,7 @@
 - `docs/ARCHITECTURE.md`, `docs/backend-structure.md` — 6개 기능과 백엔드 구조 맥락.
 
 ### 만들 것
-1. **Next.js 앱 생성**: `c:/Users/ks030/Desktop/frontend-next` 에 App Router + TypeScript + Tailwind로 초기화. (기존 `frontend/`는 건드리지 마라.) 패키지: `lucide-react`, `3dmol`, `chart.js` + `react-chartjs-2`, `zustand`, `clsx`/`tailwind-merge`. shadcn/ui 초기화(가능하면).
+1. **Next.js 앱 생성**: repo의 `frontend/` 에 App Router + TypeScript + Tailwind로 초기화. 패키지: `lucide-react`, `3dmol`, `chart.js` + `react-chartjs-2`, `zustand`, `clsx`/`tailwind-merge`. shadcn/ui 초기화(가능하면).
 2. **폰트**: `next/font/google`로 Fraunces(헤딩)·Inter(본문)·JetBrains Mono(수치) 로드. 한글 폴백 포함.
 3. **디자인 토큰**: design-system.md §2의 값을 `app/globals.css`의 `:root` CSS 변수 + `tailwind.config.ts`의 `theme.extend`로 1:1 반영(하드코딩 금지, 토큰만). `lib/tokens.ts`에 차트/뷰어 JS 상수(CHART/VIEWER 색)도 박제.
 4. **3-존 콕핏 셸**(design-system.md §4): `components/layout/AppShell.tsx`(grid `280px minmax(0,1fr) 300px`, 접힘 시 우측 0), `StepRail`(좌, 6단계 상태 완료/현재/잠금), `Workspace`(가운데, 헤더 고정 + 본문 내부 스크롤), `SummaryPanel`(우, 접기/펼치기 토글 + step-aware). **§4.5 CSS 함정 반드시 준수**: 100vh 그리드는 `grid-template-rows:minmax(0,1fr)`, 모든 스크롤 조상에 `min-height:0`, 동일 높이 카드는 `height` 금지(`align-items:stretch`만), 그리드 카드 `margin-top:0`.
@@ -33,12 +33,12 @@
 - 결과적으로 각 기능 프롬프트(02~07)는 **`app/(wizard)/step-N/` + `features/<도메인>/` + `lib/i18n/<feature>.ts`(+ 자기 store 슬라이스)** 만 생성/수정한다 → 같은 파일을 동시에 안 건드려 병렬 충돌 0.
 
 ### 검증 후 보고
-- `cd frontend-next && npm run dev`로 빌드/기동되는지 확인하고, 타입 에러 0을 목표로 한다.
+- `cd frontend && npm run dev`로 빌드/기동되는지 확인하고, 타입 에러 0을 목표로 한다.
 - 3-존 셸이 100vh에서 **세로 전역 스크롤 없이** 뜨고, 가운데 본문만 내부 스크롤되며, 우측 패널 접기/펼치기가 동작하는지 확인.
 - 완료 후: 생성한 파일 트리, 실행 방법(백엔드 :8000 + 프런트 :3000), 토큰/컴포넌트가 design-system.md와 일치하는지 요약.
 
 ### 완료 정의 (DoD)
-- [ ] `frontend-next`가 `npm run dev`로 기동, 타입체크 통과.
+- [ ] `frontend`가 `npm run dev`로 기동, 타입체크 통과.
 - [ ] Lab Paper 토큰이 globals.css + tailwind.config에 design-system.md §2와 일치.
 - [ ] 3-존 셸 + StepRail/Workspace/SummaryPanel이 §4.5 함정 없이 동작(전역 스크롤 X, 본문 내부 스크롤 O, 우측 토글 O).
 - [ ] 공유 UI 컴포넌트(특히 MoleculeViewer·ConvergenceChart·LogTerminal)가 빈 상태로라도 렌더됨.

@@ -6,7 +6,7 @@
 
 ## 프롬프트
 
-너는 **f1-structure** 기능(1단계: CIF 업로드 + 구조 분석 + 3D 뷰어)을 `frontend-next`에 구현하고 실제 백엔드에 연결한다.
+너는 **f1-structure** 기능(1단계: CIF 업로드 + 구조 분석 + 3D 뷰어)을 `frontend`에 구현하고 실제 백엔드에 연결한다.
 
 ### 먼저 읽어라 (단일 소스)
 - `docs/features/f1-structure/api.md` — `POST /analyze-cif`, `POST /update-kpoint-cache`의 요청/응답 계약.

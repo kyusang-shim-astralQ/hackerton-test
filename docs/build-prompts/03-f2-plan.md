@@ -6,7 +6,7 @@
 
 ## 프롬프트
 
-너는 **f2-plan** 기능(2단계 물성 선택, 3단계 DFT 옵션 + AI 계산 플랜 생성)을 `frontend-next`에 구현하고 백엔드에 연결한다.
+너는 **f2-plan** 기능(2단계 물성 선택, 3단계 DFT 옵션 + AI 계산 플랜 생성)을 `frontend`에 구현하고 백엔드에 연결한다.
 
 ### 먼저 읽어라 (단일 소스)
 - `docs/features/f2-plan/api.md` — `POST /generate-plan`의 요청/응답 계약(`PlanRequest` → `{atom_info, steps[], expert_tip}`).

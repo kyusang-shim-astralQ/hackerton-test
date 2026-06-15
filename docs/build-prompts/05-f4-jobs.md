@@ -6,7 +6,7 @@
 
 ## 프롬프트
 
-너는 **f4-jobs** 기능(5단계: SGE 제출 + 8초 폴링 실시간 모니터링)을 `frontend-next`에 구현한다. 실제 제출/모니터링은 **Faraday SGE 클러스터가 필요**하므로, 로컬 시뮬레이션을 위해 **MOCK MODE를 1순위로** 만들고 실제 호출은 그 위에 얹는다.
+너는 **f4-jobs** 기능(5단계: SGE 제출 + 8초 폴링 실시간 모니터링)을 `frontend`에 구현한다. 실제 제출/모니터링은 **Faraday SGE 클러스터가 필요**하므로, 로컬 시뮬레이션을 위해 **MOCK MODE를 1순위로** 만들고 실제 호출은 그 위에 얹는다.
 
 ### 먼저 읽어라 (단일 소스)
 - `docs/features/f4-jobs/api.md` — `POST /submit-job`, `GET /job-live-status/{job_key}?lang`, `POST /job-stop`, `GET /download-job/{job_name}`의 계약.

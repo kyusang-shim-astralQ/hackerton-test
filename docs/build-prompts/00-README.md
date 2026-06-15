@@ -3,7 +3,7 @@
 이 폴더는 **사전 코드 없이** 해커톤 당일 작동하는 앱을 즉시 생성하기 위한 **빌드 프롬프트(md)** 모음입니다.
 각 프롬프트는 **새(콜드) Claude Code 세션**에 그대로 붙여넣어 쓰도록 자급자족으로 작성되어 있습니다 — 우리 대화 맥락 없이도, 프롬프트가 스펙 파일을 직접 읽고 빌드합니다.
 
-> 시뮬레이션 방법: 이 세션이 아닌 **새 Claude Code 세션**을 프로젝트 루트(`c:/Users/ks030/Desktop/backend`)에서 열고, 아래 순서대로 각 파일의 "프롬프트" 블록을 붙여넣으세요.
+> 시뮬레이션 방법: 이 세션이 아닌 **새 Claude Code 세션**을 프로젝트 루트(clone한 repo 루트)에서 열고, 아래 순서대로 각 파일의 "프롬프트" 블록을 붙여넣으세요.
 
 ## 무엇을 빌드하나
 - **확정 디자인**: Lab Paper (밝은 과학 논문 톤). 시각 기준 = `docs/mockups/a-paper-hifi.html`.
@@ -30,14 +30,14 @@
 - **01은 하드 의존성**: 02~07은 01이 만든 공유 스캐폴드(앱·토큰·3-존 셸·공유 컴포넌트·스토어·API 클라이언트·라우트 자리)에 의존한다. **01이 `npm run dev`로 정상 기동하는 것을 확인한 뒤** 02~07을 시작한다.
 - **02~07은 병렬 가능**: 각 기능은 자기 단계 라우트(`app/(wizard)/step-N/`)와 기능 폴더(`features/<도메인>/`)만 소유하므로 서로 막지 않는다. 01이 공유 표면(store/steps/i18n/api base)을 전부 확정하므로(01-foundation의 "병렬 안전" 절) 같은 파일을 동시에 안 건드린다.
 - **단, 동시 실행 방식 주의**:
-  - **여러 사람/세션이 동시에** 같은 `frontend-next` 트리를 작업하면 → **git 브랜치 또는 worktree를 기능별로** 분리해 작업 후 머지(공유 파일 충돌 방지의 안전망).
+  - **여러 사람/세션이 동시에** 같은 `frontend` 트리를 작업하면 → **git 브랜치 또는 worktree를 기능별로** 분리해 작업 후 머지(공유 파일 충돌 방지의 안전망).
   - **혼자 한 세션으로 시뮬레이션**하면 → 한 세션은 본질적으로 순차이므로 **02 → 07 순서로** 실행(병렬은 "여러 세션"일 때 의미). 각 기능 프롬프트는 상위 데이터가 없으면 목/시드로 단독 동작하도록 작성되어 있어 순서를 바꿔도 빌드는 됨(단 end-to-end 흐름 확인은 02→07 순서가 편함).
 
-## 사전 준비 (백엔드 가동)
-1. `backend/.env`에 `CLAUDE_API_KEY=...` 설정.
-2. 의존성 설치: `fastapi uvicorn anthropic ase python-dotenv pydantic` (CIF 파싱에 `ase` 필요).
-3. 실행: `backend/`에서 `python main.py` → `http://localhost:8000`. (CORS는 `*`로 열려 있어 브라우저 직접 호출 가능.)
-4. 프런트는 `http://localhost:3000`에서 `NEXT_PUBLIC_API_BASE=http://localhost:8000`로 호출.
+## 사전 준비 (가동)
+1. `backend/.env`에 `CLAUDE_API_KEY=...` 설정(f2·f5 LLM 호출용).
+2. **백엔드는 `be-01~07` 프롬프트로 from-scratch 빌드**. 빌드 후 의존성(예): `fastapi uvicorn anthropic ase python-dotenv pydantic` (CIF 파싱에 `ase`).
+3. 백엔드 실행: `backend/`에서 `uvicorn app.main:app --reload --port 8000` → `http://localhost:8000` (CORS `*`).
+4. 프런트 실행: `frontend/`에서 `npm run dev` → `http://localhost:3000` (`NEXT_PUBLIC_API_BASE=http://localhost:8000`).
 
 ## "정확히 돌아가는지" — 현실적 기대치 (중요)
 로컬 시뮬레이션에서 **완전 동작**하는 것과 **클러스터 필요**한 것이 갈립니다:

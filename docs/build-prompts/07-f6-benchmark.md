@@ -6,7 +6,7 @@
 
 ## 프롬프트
 
-너는 **f6-benchmark** 기능(공식 12개 케이스로 에이전트 정확도를 검증하는 벤치마크 대시보드)을 `frontend-next`에 구현한다. 실제 실행은 **클러스터가 필요**하므로 **MOCK MODE를 1순위로** 만든다.
+너는 **f6-benchmark** 기능(공식 12개 케이스로 에이전트 정확도를 검증하는 벤치마크 대시보드)을 `frontend`에 구현한다. 실제 실행은 **클러스터가 필요**하므로 **MOCK MODE를 1순위로** 만든다.
 
 ### 먼저 읽어라 (단일 소스)
 - `docs/features/f6-benchmark/api.md` — `POST /api/benchmark/run`(body `{levels, ...params}` → `{status, message}`), `GET /api/benchmark/status?lang`(→ `{status, current_level, reports[]}`).

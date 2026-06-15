@@ -6,7 +6,7 @@
 
 ## 프롬프트
 
-너는 **f3-inp** 기능(4단계: AI가 제안한 멀티스텝 플랜 검토·편집 후 CP2K `.inp` 생성)을 `frontend-next`에 구현하고 백엔드에 연결한다.
+너는 **f3-inp** 기능(4단계: AI가 제안한 멀티스텝 플랜 검토·편집 후 CP2K `.inp` 생성)을 `frontend`에 구현하고 백엔드에 연결한다.
 
 ### 먼저 읽어라 (단일 소스)
 - `docs/features/f3-inp/api.md` — `POST /generate-inp`의 요청/응답 계약(`InpRequest` → `{status, generated_files:[{filename, content}]}`). 스텝 필터링(selected/exclude)·단일/다중 분기·파일명 규칙·k-point 3단계 우선순위를 그대로 따른다.

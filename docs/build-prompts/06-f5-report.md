@@ -6,7 +6,7 @@
 
 ## 프롬프트
 
-너는 **f5-report** 기능(6단계: AI 분석 리포트 + 결과 다운로드)을 `frontend-next`에 구현한다. 실제 리포트는 **완료된 계산 결과 디렉터리**가 필요하므로(로컬 시뮬레이션엔 보통 없음) **MOCK MODE를 기본 경로로** 만들고 실제 호출을 얹는다.
+너는 **f5-report** 기능(6단계: AI 분석 리포트 + 결과 다운로드)을 `frontend`에 구현한다. 실제 리포트는 **완료된 계산 결과 디렉터리**가 필요하므로(로컬 시뮬레이션엔 보통 없음) **MOCK MODE를 기본 경로로** 만들고 실제 호출을 얹는다.
 
 ### 먼저 읽어라 (단일 소스)
 - `docs/features/f5-report/api.md` — `POST /generate-report`(요청 `{job_dir, property, lang}` → `{status, report(markdown), summary{final_energy, target_property}, is_multi}`), `GET /download-job/{job_name}`.
