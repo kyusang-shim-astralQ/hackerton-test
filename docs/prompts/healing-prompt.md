@@ -1,5 +1,7 @@
 # Healing Prompt (자가치유 — `heal_with_ai`)
 
+> ※ 이 프롬프트는 self_healing의 `heal_with_ai`가 사용하는 것이다 — f4 재구현(be/05) 시 `heal_with_ai`가 아래 프롬프트로 Claude를 호출한다(`schema_engine.get_manual_snippet`로 XML 스키마 컨텍스트 주입).
+
 - **사용처**: f4-jobs — CP2K 작업 실패 시 `.out` 로그를 읽고 `.inp`를 자동 수정. (`be/05`가 참조) — Claude API **3번째 호출 지점**(① 플랜 ② **치유** ③ 리포트).
 - **출력 형식**: 4파트 — `REASON_KR` / `FIX_KR` / `REASON` / `FIX:`(그 아래 **경로형 옵션** 라인들). FIX는 f3의 `inp_options`와 동일한 경로형(`&` 없이 `/`로 구분, `&END` 금지)이라 그대로 `.inp`에 병합 가능.
 - **템플릿 변수**(`str.format`): `{system_context}`(원자수·셀·주기성·SCF알고·물성·원소), `{current_inp}`(실패한 `.inp` 전문), `{core_error}`(로그에서 추출한 핵심 에러), `{log_tail}`(로그 말미), `{history_msg}`(이전 시도 처방 — 같은 에러 반복 방지).

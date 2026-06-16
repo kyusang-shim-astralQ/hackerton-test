@@ -6,7 +6,7 @@
 
 > **한 줄 책임**: 생성된 `.inp`(또는 자동 생성된 `.inp`)와 `atom_info`/`steps`/DFT 파라미터를 받아 SGE(`qsub`)에 작업 스위트를 제출하고, `qstat` 폴링으로 실시간 상태를 모니터링하며, 실패 시 `self_healing`으로 자동 재시도하고, 단계 간 좌표를 체이닝한다. 다중구조 제출 시 `multi_metadata.json`을 기록하며, 단일/다중 라이브 상태와 작업 중단/다운로드를 제공한다.
 
-> **MVP 실제 실행(SSH/SGE)**: 백엔드는 로컬에서 돌고 **`paramiko`로 클러스터(`.env`의 `CLUSTER_*`)에 SSH/SFTP 접속**해 `.inp`+`run.sh` 업로드 → `qsub` → `qstat` 폴링 → 결과 회수한다(`app/core/sge.py`). 아래 "외부 의존성"의 직접 `subprocess(qsub)` 서술은 **레거시(클러스터 내부 실행) 기준**이며, **엔드포인트·데이터 계약은 동일**하다. `USE_SGE=0`/연결 실패 시 목 스트림 폴백. 실패 시 **경량 AI 자가치유**(진단→`.inp` 수정→재시도 MAX3, `docs/prompts/healing-prompt.md`)는 **범위 안**; 34MB `schema_engine`·지식베이스 학습만 범위 밖.
+> **MVP 실제 실행(SSH/SGE)**: 백엔드는 로컬에서 돌고 **`paramiko`로 클러스터(`.env`의 `CLUSTER_*`)에 SSH/SFTP 접속**해 `.inp`+`run.sh` 업로드 → `qsub` → `qstat` 폴링 → 결과 회수한다(`app/core/sge.py`). 아래 "외부 의존성"의 직접 `subprocess(qsub)` 서술은 **레거시(클러스터 내부 실행) 기준**이며, **엔드포인트·데이터 계약은 동일**하다. `USE_SGE=0`/연결 실패 시 목 스트림 폴백. **자가치유·INP 생성은 원래 로직을 be/05·be/04 명세대로 재구현**한다(코드 복사 아님) — orchestrator(진단→KB heal→AI heal→재시도≤3, `record_success`, 좌표 체이닝) + `schema_engine`(cp2k_input.xml)로 INP 스키마 검증·렌더. **SGE 호출(`qsub`/`qstat`/`qdel`)만 `subprocess` → SSH(`app/core/sge.py`, paramiko)로 교체**하고, 엔드포인트·데이터 계약은 동일. 다중-CIF는 구조별로 `start_job_suite`를 독립 호출해 각자 자가치유한다.
 
 | 항목 | 내용 |
 |---|---|

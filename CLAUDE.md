@@ -107,7 +107,7 @@
 - **자가수정 루프 안전장치:** `MAX_RETRIES`(예: 3) 초과 시 멈추고 에스컬레이트 / 매 재시도 "무엇을 왜 고쳤는지" 로그(대시보드·리포트 노출) / 같은 에러 반복 시 즉시 중단.
 - 단위·물리량(에너지/길이)은 명시적으로 다룬다.
 
-> **백지 MVP 주의:** 완전 스키마 검증 대신 **템플릿 수준**으로 시작한다(`docs/build-prompts/MVP-SCOPE.md`). reference 코드가 허용되면 `schema_engine` 이식으로 강화.
+> **f3/f4 = 원래 로직을 md 명세대로 재구현:** `.inp` 생성은 `schema_engine`(cp2k_input.xml)로 스키마 검증·렌더 + 3-pass `validate_and_correct`, 실패 시 `self_healing`(diagnose→KB heal→AI heal→재시도≤3, `record_success`)로 자가치유한다(`be/04`·`be/05` 명세 — **코드 복사 아님**). **데이터 파일**(`cp2k_input.xml`·`basis_map.json`·`healing_knowledge.json`)만 `backend/app/shared/`에 반입해야 동작.
 
 ---
 

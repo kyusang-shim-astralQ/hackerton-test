@@ -1,6 +1,6 @@
 # 07 · f6-benchmark — 12-레벨 정확도 벤치마크  ※ 클러스터 의존 → MOCK MODE 필수
 
-> 사용법: `fe/01-foundation.md` 완료 후, 새/같은 세션에 아래 프롬프트를 붙여넣으세요. (벤치마크는 메인 6단계와 별개 트랙)
+> 사용법: `fe/01-foundation.md` 완료 후, 새/같은 세션에 아래 프롬프트를 붙여넣으세요. (벤치마크 진입 버튼은 **무조건 6단계 리포트 화면 하단**에 배치)
 
 ---
 
@@ -14,7 +14,7 @@
 - `docs/design-system.md`(Lab Paper) 톤.
 
 ### 만들 것
-1. **진입/실행**: 벤치마크 화면(예: 1단계 내 진입 버튼 또는 별도 라우트 `app/(wizard)/benchmark` — design-system 톤 유지). [통합 벤치마크 가동] → `POST /api/benchmark/run`.
+1. **진입/실행 (★ 무조건 6단계 리포트 하단)**: 벤치마크 진입 버튼([벤치마크 실행])을 **step-6(리포트) 화면 맨 아래**에 배치한다(다른 위치 금지). 클릭 시 벤치마크 뷰(같은 화면 하단 펼침 또는 별도 라우트 `app/(wizard)/benchmark`, design-system 톤). [통합 벤치마크 가동] → `POST /api/benchmark/run`.
 2. **진행 모니터링**: `GET /api/benchmark/status?lang=ko`를 **3초 주기** 폴링. 12-레벨 상태 그리드(레벨별 Pending/Running/Success/Skipped) + 결과 테이블(Agent 에너지 vs 공식 에너지 vs 오차). `status==='Finished'`에서 폴링 중단.
 
 ### ★ MOCK MODE (클러스터 없이 시연)

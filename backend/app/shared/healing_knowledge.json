@@ -1,0 +1,206 @@
+{
+  "f26cf81f1b76665c189254715d43e56e": {
+    "reason": "The error `invalid value for enumeration:QUICKSTEP` occurs because `METHOD Quickstep` in `&FORCE_EVAL` uses mixed case which CP2K's enumeration parser rejects — it must be `QUICKSTEP`. Additionally, `RUN_TYPE ENERGY` contradicts the target property `geo_opt`, and `&POISSON PERIODIC NONE` contradicts `&CELL PERIODIC XYZ`. The CUTOFF of 50 Ry is also dangerously low for N/C/H systems and should be raised. These combined issues must all be corrected for a valid geo_opt run.",
+    "fixes": [
+      "&GLOBAL/RUN_TYPE GEO_OPT",
+      "&GLOBAL/PROJECT_NAME CP2K_GEO_OPT",
+      "&FORCE_EVAL/METHOD QUICKSTEP",
+      "&FORCE_EVAL/DFT/&MGRID/CUTOFF 300",
+      "&FORCE_EVAL/DFT/&MGRID/REL_CUTOFF 60",
+      "&FORCE_EVAL/DFT/&POISSON/PERIODIC XYZ",
+      "&FORCE_EVAL/DFT/&POISSON/POISSON_SOLVER PERIODIC",
+      "&FORCE_EVAL/DFT/&SCF/SCF_GUESS ATOMIC",
+      "&FORCE_EVAL/DFT/&SCF/EPS_SCF 1.0E-6",
+      "&FORCE_EVAL/DFT/&SCF/MAX_SCF 300",
+      "&FORCE_EVAL/DFT/&SCF/&OT/MINIMIZER DIIS",
+      "&FORCE_EVAL/DFT/&SCF/&OT/PRECONDITIONER FULL_SINGLE_INVERSE",
+      "&FORCE_EVAL/DFT/&SCF/&OT/SAFE_DIIS TRUE",
+      "&FORCE_EVAL/DFT/&SCF/&OT/N_HISTORY_VEC 7",
+      "&FORCE_EVAL/DFT/&SCF/&OT/STEPSIZE 0.05",
+      "&FORCE_EVAL/DFT/&SCF/&OUTER_SCF/EPS_SCF 1.0E-6",
+      "&FORCE_EVAL/DFT/&SCF/&OUTER_SCF/MAX_SCF 10"
+    ]
+  },
+  "696b031073e74bf2cb98e5ef201d4aa3": {
+    "reason": "The error \"Section XC should not repeat\" indicates a duplicate &XC block in the input hierarchy. Additionally, the failed input uses &DIAGONALIZATION and &MIXING which conflict with the OT algorithm intent. The fix removes the duplicate XC section issue by ensuring a clean single &XC block, replaces the incompatible &DIAGONALIZATION/&MIXING blocks with a proper &OT sub-section under &SCF, and preserves the target property (AIMD) by switching RUN_TYPE to MD while keeping OT as the SCF solver.",
+    "fixes": [
+      "&GLOBAL/RUN_TYPE MD",
+      "&GLOBAL/PROJECT_NAME CP2K_AGENT_AIMD_V2",
+      "&GLOBAL/PRINT_LEVEL LOW",
+      "&FORCE_EVAL/&DFT/BASIS_SET_FILE_NAME BASIS_MOLOPT_UCL",
+      "&FORCE_EVAL/&DFT/POTENTIAL_FILE_NAME GTH_POTENTIALS",
+      "&FORCE_EVAL/&DFT/&QS/METHOD GPW",
+      "&FORCE_EVAL/&DFT/&QS/EPS_DEFAULT 1.0E-10",
+      "&FORCE_EVAL/&DFT/&MGRID/CUTOFF 180",
+      "&FORCE_EVAL/&DFT/&MGRID/REL_CUTOFF 50",
+      "&FORCE_EVAL/&DFT/&MGRID/NGRIDS 4",
+      "&FORCE_EVAL/&DFT/&SCF/SCF_GUESS ATOMIC",
+      "&FORCE_EVAL/&DFT/&SCF/EPS_SCF 1.0E-4",
+      "&FORCE_EVAL/&DFT/&SCF/MAX_SCF 2",
+      "&FORCE_EVAL/&DFT/&SCF/IGNORE_CONVERGENCE_FAILURE TRUE",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/MINIMIZER DIIS",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/ALGORITHM IRAC",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/N_DIIS 7",
+      "&FORCE_EVAL/&DFT/&POISSON/PERIODIC XYZ",
+      "&MOTION/&MD/ENSEMBLE NVE",
+      "&MOTION/&MD/STEPS 2",
+      "&MOTION/&MD/TIMESTEP 0.5",
+      "&MOTION/&MD/TEMPERATURE 300.0"
+    ]
+  },
+  "da0f7c7242e1dd29a5cc51ef3e8b3b4c": {
+    "reason": "The error `invalid value for enumeration: .TRUE.` is caused by `&LOCALIZE .TRUE.` inside the `&XAS` section. In CP2K, `&LOCALIZE` is a sub-section, not a keyword — it cannot accept `.TRUE.` as an inline value on the section opening line. The fix is to declare it as a plain section without any inline boolean argument.",
+    "fixes": [
+      "&FORCE_EVAL/&DFT/&XAS/&LOCALIZE/CRAZY_XYZ NONE"
+    ]
+  },
+  "d026b29b3839976500d7806325999308": {
+    "reason": "The CP2K parser encountered `&LOCALIZE TRUE` inside `&XAS`, where `TRUE` is being parsed as an enumeration value for the section header — this is invalid syntax. In CP2K, `&LOCALIZE` is a standalone sub-section and cannot accept a boolean value on the same line as the section opener. The fix is to declare it as a plain section. Additionally, the `&OT OFF` pattern (OT disabled via OFF keyword on the section line) should be confirmed valid, and the `POISSON/PERIODIC NONE` with `MT` solver is inconsistent with `PERIODIC XYZ` system context — aligning the Poisson solver to match the periodic boundary condition is necessary.",
+    "fixes": [
+      "&DFT/&POISSON/PERIODIC XYZ",
+      "&DFT/&POISSON/POISSON_SOLVER PERIODIC",
+      "&DFT/&SCF/&OT/MINIMIZER DIIS",
+      "&DFT/&SCF/&OT/PRECONDITIONER FULL_ALL",
+      "&DFT/&SCF/&MIXING/METHOD BROYDEN_MIXING",
+      "&DFT/&SCF/&MIXING/ALPHA 0.1",
+      "&DFT/&SCF/&MIXING/BETA 0.1",
+      "&DFT/&SCF/&MIXING/NBUFFER 8"
+    ]
+  },
+  "9825bc677efdcc01b4bfde48d2e731b4": {
+    "reason": "The error \"invalid value for enumeration: SECTION_PARAMETERS\" is triggered because CP2K does not accept `SECTION_PARAMETERS` as an inline section toggle in `&OUTER_SCF OFF`, `&MOMENTS SECTION_PARAMETERS ON`, and `&DISTRIBUTION SECTION_PARAMETERS ON`. In CP2K, sections are enabled/disabled via their section parameter (e.g., `.TRUE.`/`.FALSE.`) written as the section's own parameter keyword, not as `SECTION_PARAMETERS`. The `&OUTER_SCF` section should either be omitted or have its activation controlled properly. Additionally, `&MOMENTS` and `&DISTRIBUTION` do not use `SECTION_PARAMETERS` as a keyword — they are simply opened or not. Removing these invalid inline parameters resolves the parse error while preserving the OT algorithm and all other settings.",
+    "fixes": [
+      "&FORCE_EVAL/&DFT/&SCF/&OUTER_SCF/EPS_SCF 5.E-4",
+      "&FORCE_EVAL/&DFT/&SCF/&OUTER_SCF/MAX_SCF 10",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/MINIMIZER CG",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/LINESEARCH 2PNT",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/PRECONDITIONER FULL_SINGLE_INVERSE"
+    ]
+  },
+  "27620fd583750c513c001582ee44c18b": {
+    "reason": "The error message explicitly states \"D3 vdW REFERENCE_FUNCTIONAL expected a second parameter (example REFERENCE_FUNCTIONAL PBE)\". The `&PAIR_POTENTIAL` block for DFTD3 is missing the mandatory `REFERENCE_FUNCTIONAL` keyword, which tells the D3 library which damping parameters to load from `dftd3.dat`. Since the XC functional is PBE, the correct value is `PBE`. No algorithm changes are needed — this is purely a missing required keyword in the dispersion block.",
+    "fixes": [
+      "&FORCE_EVAL/&DFT/&XC/&VDW_POTENTIAL/&PAIR_POTENTIAL/TYPE DFTD3",
+      "&FORCE_EVAL/&DFT/&XC/&VDW_POTENTIAL/&PAIR_POTENTIAL/REFERENCE_FUNCTIONAL PBE",
+      "&FORCE_EVAL/&DFT/&XC/&VDW_POTENTIAL/&PAIR_POTENTIAL/PARAMETER_FILE_NAME dftd3.dat",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/ALGORITHM STANDARD",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/METHOD BROYDEN_MIXING",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/ALPHA 0.3",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/BETA 1.5",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/NBUFFER 8",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/BROY_W0 0.01"
+    ]
+  },
+  "7a6b538c104065f5f97f71af3bf0a426": {
+    "reason": "The error message explicitly states `invalid value for enumeration: FULL_ALL` triggered during input parsing. The `KERNEL` keyword in `&TDDFPT` does not accept `FULL_ALL` as a valid enum — the correct value is `FULL`. All other sections (SCF, DIAGONALIZATION, MIXING, SMEAR) are structurally valid for this 164-atom periodic XYZ system using the DIAGONALIZATION algorithm with ADDED_MOS and SMEAR already properly configured.",
+    "fixes": [
+      "&FORCE_EVAL/&PROPERTIES/&TDDFPT/KERNEL FULL"
+    ]
+  },
+  "ac0daab4738ce447fb52a653f5f6f264": {
+    "reason": "The error clearly states `unknown subsection &POISSON of section DFT`. In CP2K's schema, `&POISSON` belongs under `&FORCE_EVAL`, not `&FORCE_EVAL/&DFT`. Additionally, the `&KG_METHOD` block containing an `&HF` section is irrelevant for a standard GPW/PBE calculation and adds unnecessary complexity. Moving `&POISSON` to the correct path (`&FORCE_EVAL/&POISSON`) resolves the parsing abort. All other settings (DIAGONALIZATION, MIXING, SMEAR, ADDED_MOS) are preserved as requested.",
+    "fixes": [
+      "&FORCE_EVAL/&POISSON/PERIODIC XYZ",
+      "&DFT/&QS/METHOD GPW",
+      "&DFT/&SCF/&DIAGONALIZATION/ALGORITHM STANDARD",
+      "&DFT/&SCF/&DIAGONALIZATION/EPS_ADAPT 0.01",
+      "&DFT/&SCF/&DIAGONALIZATION/MAX_ITER 50",
+      "&DFT/&SCF/&DIAGONALIZATION/EPS_ITER 1.0E-6",
+      "&DFT/&SCF/&MIXING/METHOD BROYDEN_MIXING",
+      "&DFT/&SCF/&MIXING/ALPHA 0.3",
+      "&DFT/&SCF/&MIXING/BETA 1.5",
+      "&DFT/&SCF/&MIXING/NBUFFER 8",
+      "&DFT/&SCF/&MIXING/BROY_W0 0.01",
+      "&DFT/&SCF/&SMEAR/METHOD FERMI_DIRAC",
+      "&DFT/&SCF/&SMEAR/ELECTRONIC_TEMPERATURE 300",
+      "&DFT/&SCF/&SMEAR/EPS_FERMI_DIRAC 1.0E-6",
+      "&DFT/&SCF/&OUTER_SCF/EPS_SCF 1.0E-7",
+      "&DFT/&SCF/&OUTER_SCF/MAX_SCF 20",
+      "&DFT/&SCF/ADDED_MOS 40",
+      "&DFT/&SCF/MAX_SCF 300",
+      "&DFT/&SCF/EPS_SCF 1.0E-7",
+      "&DFT/&SCF/SCF_GUESS ATOMIC",
+      "&DFT/&SCF/CHOLESKY INVERSE",
+      "&DFT/&SCF/MAX_DIIS 10"
+    ]
+  },
+  "aa24d1252334d6310c981c5f6e34941b": {
+    "reason": "The error `invalid value for enumeration: FALSE` is triggered because SPINFLIP inside &TDDFPT is an enumeration requiring 'NONE', 'COLLINEAR', or 'NONCOLLINEAR', and cannot accept a boolean value. RKS_TRIPLETS requires logical F/T. Additionally, the &KG_METHOD block with a nested &HF is logically incompatible with the GPW/PBE setup and will cause further errors, and the &WF_CORRELATION/&RI_RPA/&GW block inside &TDDFPT/&XC is invalid in this context for a pure TDDFT energy run.",
+    "fixes": [
+      "&FORCE_EVAL/&PROPERTIES/&TDDFPT/SPINFLIP NONE",
+      "&FORCE_EVAL/&PROPERTIES/&TDDFPT/RKS_TRIPLETS F",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/ALGORITHM STANDARD",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/EPS_ADAPT 0.01",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/MAX_ITER 50",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/EPS_ITER 1.0E-6",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/METHOD BROYDEN_MIXING",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/ALPHA 0.3",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/BETA 1.5",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/NMIXING 8",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/NBUFFER 8",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/BROY_W0 0.01",
+      "&FORCE_EVAL/&DFT/&SCF/&SMEAR/METHOD FERMI_DIRAC",
+      "&FORCE_EVAL/&DFT/&SCF/&SMEAR/ELECTRONIC_TEMPERATURE 300",
+      "&FORCE_EVAL/&DFT/&SCF/&SMEAR/EPS_FERMI_DIRAC 1.0E-6",
+      "&FORCE_EVAL/&DFT/&SCF/ADDED_MOS 40",
+      "&FORCE_EVAL/&DFT/&SCF/MAX_SCF 300",
+      "&FORCE_EVAL/&DFT/&SCF/EPS_SCF 1.0E-7"
+    ]
+  },
+  "fac9f9173386284c041f19be3bd5f5ee": {
+    "reason": "The CP2K parser rejects boolean or logical values for SPINFLIP inside &TDDFPT — it expects the enumeration values 'NONE', 'COLLINEAR', or 'NONCOLLINEAR'. RKS_TRIPLETS requires logical F/T. Additionally, the &KG_METHOD block containing &HF is incompatible with standard GPW/PBE runs and the nested &WF_CORRELATION/&RI_RPA/&GW inside &TDDFPT/&XC is inconsistent with a pure TDDFT energy calculation — both should be removed to avoid further conflicts.",
+    "fixes": [
+      "&FORCE_EVAL/&PROPERTIES/&TDDFPT/SPINFLIP NONE",
+      "&FORCE_EVAL/&PROPERTIES/&TDDFPT/RKS_TRIPLETS F",
+      "&FORCE_EVAL/&PROPERTIES/&TDDFPT/RESTART T",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/ALGORITHM STANDARD",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/EPS_ADAPT 0.01",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/MAX_ITER 50",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/EPS_ITER 1.0E-6",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/METHOD BROYDEN_MIXING",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/ALPHA 0.3",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/BETA 1.5",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/NMIXING 8",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/NBUFFER 8",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/BROY_W0 0.01",
+      "&FORCE_EVAL/&DFT/&SCF/&SMEAR/METHOD FERMI_DIRAC",
+      "&FORCE_EVAL/&DFT/&SCF/&SMEAR/ELECTRONIC_TEMPERATURE 300",
+      "&FORCE_EVAL/&DFT/&SCF/&SMEAR/EPS_FERMI_DIRAC 1.0E-6",
+      "&FORCE_EVAL/&DFT/&SCF/ADDED_MOS 40"
+    ]
+  },
+  "5b9bd15b6d9fa1eb0bf90331ece6e19c": {
+    "reason": "The log shows CP2K fell back to P_Mix/Diag instead of OT because &SMEAR was present — OT requires integer orbital occupations and is fundamentally incompatible with Fermi-Dirac smearing. Removing &SMEAR restores OT operation. Additionally, FULL_ALL preconditioner is very expensive and can cause instability for large systems (164 atoms); switching to FULL_SINGLE_INVERSE is more robust. Changing MINIMIZER to DIIS within OT and reducing STEPSIZE improves convergence for this large organic system. The OUTER_SCF optimizer is changed from DIIS to BISECT for better stability, and MIXING is kept with reduced ALPHA.",
+    "fixes": [
+      "&FORCE_EVAL/&DFT/&SCF/&SMEAR REMOVE",
+      "&FORCE_EVAL/&DFT/&SCF/ADDED_MOS 0",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/MINIMIZER DIIS",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/PRECONDITIONER FULL_SINGLE_INVERSE",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/N_DIIS 7",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/STEPSIZE 0.02",
+      "&FORCE_EVAL/&DFT/&SCF/&OT/ALGORITHM IRAC",
+      "&FORCE_EVAL/&DFT/&SCF/&OUTER_SCF/OPTIMIZER BISECT",
+      "&FORCE_EVAL/&DFT/&SCF/&OUTER_SCF/MAX_SCF 20",
+      "&FORCE_EVAL/&DFT/&SCF/&OUTER_SCF/EPS_SCF 1.0E-6",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/METHOD BROYDEN_MIXING",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/ALPHA 0.1",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/NBUFFER 8",
+      "&FORCE_EVAL/&DFT/&SCF/MAX_SCF 200",
+      "&FORCE_EVAL/&DFT/&SCF/EPS_SCF 1.0E-7",
+      "&FORCE_EVAL/&DFT/&SCF/SCF_GUESS ATOMIC",
+      "&FORCE_EVAL/&DFT/&SCF/CHOLESKY OFF"
+    ]
+  },
+  "532d1fbaa21e24189c4cb58f79d0eb21": {
+    "reason": "The error \"Extra MOs (ADDED_MOS) are required for smearing\" is triggered because CP2K detected that the system needs unoccupied MOs for the TDDFPT calculation (NLUMO 80), but `ADDED_MOS` is set to 0. Additionally, when ADDED_MOS > 0 is used with DIAGONALIZATION, a `&SMEAR` section is required to handle the partial occupancies. Setting ADDED_MOS to at least 80 (matching NLUMO) and adding Fermi-Dirac smearing resolves both the empty orbital requirement for TDDFPT and the CP2K internal check that demands smearing when extra MOs are present.",
+    "fixes": [
+      "&FORCE_EVAL/&DFT/&SCF/ADDED_MOS 80",
+      "&FORCE_EVAL/&DFT/&SCF/&SMEAR/METHOD FERMI_DIRAC",
+      "&FORCE_EVAL/&DFT/&SCF/&SMEAR/ELECTRONIC_TEMPERATURE 300",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/METHOD BROYDEN_MIXING",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/ALPHA 0.1",
+      "&FORCE_EVAL/&DFT/&SCF/&MIXING/NBUFFER 8",
+      "&FORCE_EVAL/&DFT/&SCF/&DIAGONALIZATION/ALGORITHM STANDARD"
+    ]
+  }
+}
