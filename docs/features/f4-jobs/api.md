@@ -390,6 +390,7 @@
 ```
 
 > `inp_options`가 `List[str]`이면 오케스트레이터가 `app/shared/options.py`의 `parse_path_based_options`로 dict 변환한다. 이미 `Dict[str,Any]`면 그대로 사용. `selected=false` 또는 `exclude=true`인 step은 `_reindex_active_steps`에서 제외된다.
+> **★ 제출 전 필터(프런트 책임)**: 백엔드 `_reindex_active_steps`는 **받은 페이로드 기준**으로만 필터하므로, step-4에서 제외한 스텝을 프런트가 `exclude:false`로 그대로 보내면 클러스터에 제출·실행된다. 프런트는 `/submit-job` 본문을 만들기 전에 `selected!==false && exclude!==true`(+ f3 제외 오버라이드)를 적용해 **활성 스텝만** 보내야 한다(fe/05 §0).
 
 ### `GeneratedFile` (from `f3-inp`)
 

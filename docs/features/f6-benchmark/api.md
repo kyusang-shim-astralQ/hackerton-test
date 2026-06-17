@@ -200,6 +200,25 @@
 
 ---
 
+### 3. `POST /api/benchmark/stop` (기동/중지)
+
+진행 중인 벤치마크 루프에 **중지를 요청**한다. `benchmark_manager.stop_benchmark()` → `results["stop_requested"]=True` + 현재 레벨의 클러스터 job이 있으면 SSH `qdel`(best-effort). 루프는 레벨 경계·폴링 중 이 플래그를 확인해 빠져나온다(현재 레벨 `Aborted`, 남은 레벨 `Skipped`).
+
+**요청 본문:** 없음.
+
+**응답 JSON**
+```jsonc
+{ "status": "success", "message": "벤치마크 중지를 요청했습니다." }
+```
+| 상황 | HTTP | 응답 |
+| --- | --- | --- |
+| 진행 중 → 중지 요청 | `200` | `{"status":"success","message":"벤치마크 중지를 요청했습니다."}` |
+| 진행 중 아님 | `200` | `{"status":"error","message":"진행 중인 벤치마크가 없습니다."}` |
+
+> 중지 후에도 프런트는 `status`가 `Stopped`/`Finished`가 될 때까지 `/status` 폴링을 이어가 마지막 reports를 받는다.
+
+---
+
 ## 생산하는 데이터 계약
 
 이 기능이 **내보내는** 구조. 소비자(프런트엔드 벤치마크 대시보드)는 아래 계약에만 의존해야 한다.

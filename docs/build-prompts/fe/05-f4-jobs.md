@@ -14,7 +14,8 @@
 - `docs/design-system.md` §4.2(5단계: 상태바 + 로그 터미널 + SCF 수렴 차트 + STOP)·§4.4(우측 라이브 미러).
 
 ### 만들 것 (`app/(wizard)/step-5`)
-1. **제출**: [SGE 제출] → `POST /submit-job`(body=store의 files/atom_info/steps/옵션). 응답 `SubmitJobResponse`(directory/sub_jobs) 저장 후 모니터링 대시보드로 전환. **다중-CIF면** f3의 구조별 `.inp`가 **서브잡 N개**(`sub_jobs[]`)로 제출되며, 대시보드는 서브잡 전체를 한눈에 보여준다.
+0. **★ 활성 스텝 필터(필수 — 제외한 스텝이 되살아나는 버그 방지)**: step-5는 `planResult.steps`를 **그대로 쓰지 말고**, step-4(f3)에서 제외한 스텝을 먼저 걸러 `activeSteps`를 만든다. 규칙 = `selected !== false && exclude !== true`. step-4의 제외 토글이 **`planResult.steps[i].exclude`(또는 `selected`)에 직접 기록**(권장)되거나 별도 `excludedSteps` 오버라이드 맵에 기록되면, step-5는 **그 상태를 반영해** `const activeSteps = steps.filter((s,i)=> s.selected!==false && s.exclude!==true && excludedSteps?.[i]!==true)`로 만든다. 이 **`activeSteps`를 ① 제출 요약의 스텝 미리보기 목록, ② "N stages" 배지 카운트, ③ `/submit-job` 본문의 `steps`, ④ 모니터 훅(`usePolling`)에 넘기는 `steps`에 모두 사용**한다. (`planResult.steps`를 직접 미리보기/배지/`buildSubmitRequest`/모니터에 넘기면 step-4에서 제외한 스텝이 step-5에서 다시 나타나 제출된다 — 실제 발생한 버그.) 백엔드 `_reindex_active_steps`는 **받은 페이로드 기준**으로만 필터하므로, 제외 스텝을 `exclude:false`로 보내면 그대로 클러스터에 제출된다.
+1. **제출**: [SGE 제출] → `POST /submit-job`(body=store의 files/atom_info/**activeSteps**/옵션). 응답 `SubmitJobResponse`(directory/sub_jobs) 저장 후 모니터링 대시보드로 전환. **다중-CIF면** f3의 구조별 `.inp`가 **서브잡 N개**(`sub_jobs[]`)로 제출되며, 대시보드는 서브잡 전체를 한눈에 보여준다.
 2. **실시간 모니터링**: 공유 훅 `usePolling`으로 `GET /job-live-status/{job_key}?lang=ko`를 **8초 주기** 폴링. 표시:
    - 상태바: 단계 n/m·SCF 반복·경과·현재 에너지·**STOP**(→ `POST /job-stop`).
    - **LogTerminal**(다크): `JobStatus.logs` tail, 자동 스크롤.
@@ -31,6 +32,7 @@
 - 미러/차트/터미널이 이 목 스트림으로 끝까지 움직여야 함.
 
 ### 완료 정의 (DoD)
+- [ ] **step-4에서 제외한 스텝이 step-5의 스텝 미리보기·"N stages" 배지·`/submit-job` 본문 어디에도 나타나지 않는다**(제외 후 새로고침해도 유지). 제출/모니터는 `activeSteps`만 사용.
 - [ ] (MOCK) 제출 → 8초(목은 더 짧게) 폴링 → 로그·SCF 차트·진행·STOP·완료까지 전체 흐름이 끝까지 동작.
 - [ ] 수렴 차트가 `step_histories` 기준 **스텝별로 분리**되어(스텝 탭/개별 차트) 그려진다.
 - [ ] 다중-CIF면 서브잡 N개가 서브잡 탭으로 전환되고, 각 서브잡 안에서 스텝별 차트가 동작.

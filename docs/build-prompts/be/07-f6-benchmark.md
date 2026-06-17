@@ -16,7 +16,7 @@
   - 그 외 참조 파일(`.wfn`/`.xyz`/`.psf`/`.pot` 등) — 일부 입력이 외부 참조하므로 제출 디렉토리로 **통째 복사**해 둔다.
 
 ### A. `app/features/benchmark/service.py` — `BenchmarkManager` (전역 싱글톤 `benchmark_manager`)
-- 상태 `results = {status:"Idle", current_level:0, total_levels:12, reports:[12슬롯], logs:[], logs_pos:0}`. **`asyncio.Lock`**으로 중복 실행 차단.
+- 상태 `results = {status:"Idle", current_level:0, total_levels:12, reports:[12슬롯], logs:[], logs_pos:0, stop_requested:False}`. **`asyncio.Lock`**으로 중복 실행 차단. 현재 레벨의 클러스터 `job_id`를 보관(중지 시 `qdel`용 — §G).
 - 경로: `test_dir = _BACKEND_DIR/test`, 산출물 `_BACKEND_DIR/simulations/benchmark_{YYYYmmdd_HHMMSS}/level{N}/`. (`_BACKEND_DIR`는 be/05 orchestrator와 **동일 패턴** — `features/benchmark` → `app` → `backend`. 타임스탬프는 `datetime.now().strftime`.)
 - `LEVEL_TO_PROPERTY = {1:"geo_opt", 2:"energy", 3:"dos", 4:"band", 5:"aimd", 6:"vibrational", 7:"neb", 8:"adsorption", 9:"absorption", 10:"emission", 11:"work_function", 12:"hirshfeld"}` (data-models 매핑과 1:1).
 
@@ -57,8 +57,13 @@
 에이전트 inp는 **실제로 생성**(AI 플랜→스키마 빌드 시연)하되, 실행은 불가하므로 **공식 `calculation.out`을 에이전트 결과로 사용**해 비교(diff≈0% → `SUCCESS`)하고 흐름을 끝까지 시연한다. 로그에 "목 폴백(공식 결과 사용)"임을 명시한다. (프런트 `NEXT_PUBLIC_MOCK=1`이면 프런트가 자체 가짜 스트림을 그림 — fe/07.)
 
 ### F. `app/features/benchmark/router.py`
-- `POST /api/benchmark/run`(`BenchmarkRequest`): `results["status"]=="Running"`이면 거절(`{status:"error", message:"이미 진행 중"}`, HTTP 200), 아니면 `results["status"]="Running"` 점유 → `background_tasks.add_task(benchmark_manager.run_benchmark, req)` → `{status:"success", message:"벤치마크 루프가 기동되었습니다."}`.
+- `POST /api/benchmark/run`(`BenchmarkRequest`): `results["status"]=="Running"`이면 거절(`{status:"error", message:"이미 진행 중"}`, HTTP 200), 아니면 `results["status"]="Running"`·`results["stop_requested"]=False` 점유 → `background_tasks.add_task(benchmark_manager.run_benchmark, req)` → `{status:"success", message:"벤치마크 루프가 기동되었습니다."}`.
 - `GET /api/benchmark/status`: `benchmark_manager.results` 직렬화(프런트 2~3초 폴링).
+- **★ `POST /api/benchmark/stop`(신규 — 기동/중지 기능)**: `benchmark_manager.stop_benchmark()` 호출 → `{status:"success", message:"벤치마크 중지를 요청했습니다."}`. (run 중이 아니면 `{status:"error", message:"진행 중인 벤치마크가 없습니다."}`.)
+
+### G. `stop_benchmark()` (신규)
+- `results["stop_requested"] = True`로 세팅하고 즉시 반환(루프가 다음 체크 지점에서 빠져나옴). 현재 제출돼 있는 클러스터 job이 있으면(현재 레벨의 `job_id` 보관) **SSH `qdel {job_id}`**(best-effort, 실패 무시)로 즉시 종료. 로그에 `"🛑 사용자가 벤치마크를 중지했습니다."` 추가.
+- `run_benchmark` 루프는 **두 곳에서 `results["stop_requested"]`를 확인**: ① 각 레벨 시작 직전(True면 남은 레벨을 모두 `status="Skipped"`/`message="중지됨"`으로 두고 루프 break) ② **폴링 루프 내부**(매 폴링마다 True면 현재 job `qdel` 후 그 레벨 `status="Aborted"`/`message="사용자 중지"`로 두고 break). 루프 종료 후 `finally`에서 `results["status"]="Finished"`(중지 시 `"Stopped"`로 두고 싶으면 그렇게; 프런트 폴링 중단 조건에 포함).
 
 ### 완료 정의 (DoD)
 - [ ] `backend/test/level1~12`의 공식 데이터로 각 레벨 **[CIF분석→AI플랜→INP빌드→SSH/SGE제출→자가치유≤3→공식 대비 비교]** 전 구간 실수행(가짜 진행 아님).
@@ -66,3 +71,4 @@
 - [ ] 비교 판정이 명세대로: 오차율<1.0% **또는** 더 낮은 에너지면 `SUCCESS`, 그 외 성공은 `INCORRECT`, 추출/타임아웃/예외는 `FAILURE`. `message`에 라벨·오차율·치유횟수.
 - [ ] 제출이 **SSH/SGE(`app/core/sge.py`)** 로(f4와 일관, `subprocess` 아님). `USE_SGE=0`이면 공식결과 폴백으로 흐름 시연.
 - [ ] `L{N}_Official.cif` 부재 레벨은 `Skipped`, 루프 계속. 종료 시 `status="Finished"`.
+- [ ] **`POST /api/benchmark/stop`(기동/중지)**: 호출 시 `stop_requested=True` → 루프가 레벨 경계·폴링 중 확인해 빠져나오고, 현재 클러스터 job을 `qdel`로 종료, 로그에 중지 표시. (프런트 STOP 버튼이 이걸 호출.)

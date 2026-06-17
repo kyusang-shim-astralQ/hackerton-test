@@ -18,8 +18,8 @@
    - **주 진입(첫 화면부터)**: 좌측 **StepRail의 [정확도 벤치마크] 상시 행**(fe/01 파운데이션이 이미 `/benchmark`로 라우팅). step-1에 처음 들어와도 바로 클릭 가능.
    - **보조 진입**: step-6(리포트) 화면 맨 아래 [벤치마크 실행] 버튼(→ `/benchmark`로 이동/링크).
    - **★ 위저드 상태 의존 금지**: 벤치마크는 구조 업로드/플랜 없이 단독 실행되어야 한다. `BenchmarkRequest`의 필수 DFT 파라미터(basis_set/cutoff/rel_cutoff/functional 등)는 **기본값**(f2의 `DEFAULT_OPTIONS` 또는 동등 상수)에서 채우고, `atom_info`/`steps`는 보내지 않는다(레벨별 공식 CIF는 백엔드가 로드). 따라서 wizard store가 비어 있어도 동작한다.
-   - **레벨 선택 + 가동**: `/benchmark` 화면에서 레벨 다중선택(기본 1~12 전체, 데모용으로 가벼운 레벨만 부분선택 가능) → [통합 벤치마크 가동] → `POST /api/benchmark/run`(body: `{levels, ...DEFAULT_OPTIONS}`).
-2. **진행 모니터링**: `GET /api/benchmark/status`를 **2~3초 주기** 폴링. 12-레벨 상태 그리드(레벨별 `Pending`/`Running`/`Recovering...`/`SUCCESS`/`INCORRECT`/`FAILURE`/`Skipped` 색상 구분) + 결과 테이블: 레벨·**물성명**(LEVEL_TO_PROPERTY: 1 geo_opt … 12 hirshfeld)·**Agent 값 vs 공식 값**(`agent_energy`/`official_energy`, label은 `message`의 `[Energy (Ha)]`/`[Frequency (cm^-1)]` 등)·**오차%**(`diff`)·**치유 횟수**(`healing_count`, >0이면 "Healed Nx" 배지)·메시지. 실시간 `logs` 콘솔. `status==='Finished'`에서 폴링 중단.
+   - **레벨 선택 + 가동/중지**: `/benchmark` 화면에서 레벨 다중선택(기본 1~12 전체, 데모용으로 가벼운 레벨만 부분선택 가능) → **가동 전엔 [통합 벤치마크 가동]**(→ `POST /api/benchmark/run`, body `{levels, ...DEFAULT_OPTIONS}`), **가동 중(`status==='Running'`)엔 같은 자리에 [■ 벤치마크 중지] 버튼**(→ `POST /api/benchmark/stop`)을 노출한다(oxblood 톤). 중지 응답 후에도 폴링은 종료 상태까지 계속해 마지막 reports를 갱신.
+2. **진행 모니터링**: `GET /api/benchmark/status`를 **2~3초 주기** 폴링. 상단에 **[■ 중지] 버튼**(running일 때) + 진행률. 12-레벨 상태 그리드(레벨별 `Pending`/`Running`/`Recovering...`/`SUCCESS`/`INCORRECT`/`FAILURE`/`Skipped`/`Aborted` 색상 구분) + 결과 테이블: 레벨·**물성명**(LEVEL_TO_PROPERTY: 1 geo_opt … 12 hirshfeld)·**Agent 값 vs 공식 값**(`agent_energy`/`official_energy`, label은 `message`의 `[Energy (Ha)]`/`[Frequency (cm^-1)]` 등)·**오차%**(`diff`)·**치유 횟수**(`healing_count`, >0이면 "Healed Nx" 배지)·메시지. 실시간 `logs` 콘솔. `status`가 `Finished`/`Stopped`면 폴링 중단.
 
 ### 목 폴백 (`NEXT_PUBLIC_MOCK === "1"` — 클러스터/백엔드 없이 시연)
 `NEXT_PUBLIC_MOCK === "1"`이면(실제 백엔드가 1순위이고, 이건 폴백):
@@ -30,6 +30,7 @@
 - [ ] **실제 백엔드(MOCK=0)**: [벤치마크 실행]→`/run`→`/status` 폴링으로 12레벨 그리드+테이블이 진행되고 **Agent vs 공식 값·오차%·치유횟수**가 채워지며 Finished에서 정지.
 - [ ] (목 폴백 MOCK=1) 가동 → 짧은 주기 폴링 → 12레벨 그리드+테이블이 1→12로 진행, Finished에서 정지.
 - [ ] 폴링 누수 없음(언마운트/완료 정리).
-- [ ] 데이터 모양이 `BenchmarkReport`/`BenchmarkLevelReport` 계약과 일치, 레벨→물성 매핑 정확, 상태 색상(SUCCESS/INCORRECT/FAILURE/Skipped/Recovering) 구분.
+- [ ] **가동/중지**: 가동 중 [■ 벤치마크 중지] 버튼 → `POST /api/benchmark/stop` → 진행이 멈추고 상태가 `Stopped`/`Finished`로 전환되며 폴링 종료(현재 레벨은 Aborted, 남은 레벨 Skipped).
+- [ ] 데이터 모양이 `BenchmarkReport`/`BenchmarkLevelReport` 계약과 일치, 레벨→물성 매핑 정확, 상태 색상(SUCCESS/INCORRECT/FAILURE/Skipped/Aborted/Recovering) 구분.
 - [ ] **벤치마크가 flow와 독립**: step-1 첫 화면에서 좌측 StepRail [정확도 벤치마크]만 눌러도 `/benchmark`에서 바로 가동된다(구조 업로드/플랜 없이, 기본 파라미터로). step-6 하단 버튼은 보조 진입(둘 다 `/benchmark`).
 - [ ] `/benchmark`가 독립 라우트로 존재하고 AppShell을 재사용한다(StepRail에서 벤치마크 행 accent 강조).

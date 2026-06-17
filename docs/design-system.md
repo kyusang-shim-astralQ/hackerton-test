@@ -333,7 +333,10 @@ interface StepRailProps {
 //  reachable             → step-dot: 숫자, hover 시 inset 배경
 //  locked    .is-locked  → opacity .55 + not-allowed + 자물쇠 SVG, disabled
 // 항목 레이아웃: grid 28px/1fr, step-dot 26px 원형(radius-pill, mono 숫자).
-// 레일 셸: card 배경 + 우측 1px hairline, 상단 brand(아톰 마크 + serif 이름), 하단 rail-foot(세션 표시).
+// 레일 셸: card 배경 + 우측 1px hairline, 상단 brand, 하단 rail-foot(세션 표시).
+//   ★ brand = 회사 로고 이미지 `/logo_white.png`(next/image 또는 <img>, 높이 ~24–28px) + serif "AstralQ" 워드마크.
+//     (예전 "아톰 마크 + CP2K Agent"는 폐기 — 로고+AstralQ로 대체.) 로고 파일은 `frontend/public/logo_white.png`에 둔다.
+//     로고가 어두운 배경용(white)이므로 brand 영역 배경이 밝으면 로고만 표시하거나 어두운 칩 위에 얹어 대비 확보.
 // 잠금 규칙(목업 go()): 한 단계 앞(maxReached+1)까지만 진입 허용, 그 이상은 잠금.
 // ★ 벤치마크 진입 행: 6단계 목록과 rail-foot 사이에 구분선(border-top hairline) + 1행 추가.
 //   FlaskConical(lucide) 아이콘 + "정확도 벤치마크"(title) + "Benchmark · 1–12"(mono label).
@@ -481,7 +484,7 @@ interface MoleculeViewerProps {
 ```
 
 - **그리드(목업 실제값)**: `grid-template-columns: 280px minmax(0,1fr) 300px;` / `grid-template-rows: minmax(0, 1fr);` / `height:100vh; overflow:hidden;`. 우측 패널 접힘 시 `280px minmax(0,1fr) 0`으로 전환(`.summary-collapsed`), `.28s cubic-bezier(.4,0,.2,1)` 트랜지션.
-- **좌측 — StepRail(`.rail`)**: 6단계 세로 레일. 상단 brand(아톰 마크 + serif 이름 + mono 서브), 가운데 단계 목록(`완료 ✓ / 현재 ● / 잠금 ○`), **그 아래 구분선 + [정확도 벤치마크] 상시 진입 행(flow와 독립 — 잠금 규칙 무관, 첫 화면부터 항상 클릭 가능, → `/benchmark`)**, 하단 rail-foot(세션 표시). `card` 배경 + 우측 1px hairline, 자체 `overflow-y:auto`(min-height:0). 컴포넌트 계약은 §3.5.
+- **좌측 — StepRail(`.rail`)**: 6단계 세로 레일. 상단 brand(**회사 로고 `/logo_white.png` + serif "AstralQ" 워드마크** — 예전 "CP2K Agent" 텍스트 폐기), 가운데 단계 목록(`완료 ✓ / 현재 ● / 잠금 ○`), **그 아래 구분선 + [정확도 벤치마크] 상시 진입 행(flow와 독립 — 잠금 규칙 무관, 첫 화면부터 항상 클릭 가능, → `/benchmark`)**, 하단 rail-foot(세션 표시). `card` 배경 + 우측 1px hairline, 자체 `overflow-y:auto`(min-height:0). 컴포넌트 계약은 §3.5.
 - **가운데 — Workspace(`.work`)**: 세로 flex. `work-head`(flex:none, 고정)는 eyebrow(단계 N/6) + serif h1 + 설명 + 우측 head-nav(이전 아이콘 / pager / 다음 primary). `work-body`(flex:1, **내부 스크롤**)는 단계별 `.panel`을 교체 표시(`.panel.is-active`만 `display:block`, fade-in). 헤더 메타는 단계별 META 맵(목업 `META[1..6]`)으로 교체.
 - **우측 — SummaryPanel(`.summary`)**: 접기/펼치기 토글(`.panel-toggle` chevron + 접힘 시 우측 가장자리 `.summary-reopen` 탭). 상태 localStorage 영속(`cp2k.summaryCollapsed`). **step-aware 점진 채움**: 각 블록은 자기 단계에 도달해야 값이 채워지고, 그 전엔 `— 선택 전/미선택/미설정`(ink-faint). **5단계에선 stage 목록이 라이브 미러(run-mirror)로 전환**. 상세는 §4.4.
 

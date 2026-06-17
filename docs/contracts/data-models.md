@@ -267,6 +267,8 @@ f4-jobs      ── SimulationArtifacts (디스크) ─▶ f5-report
 | `inp_options` | `List[str] \| Dict[str,Any]` | ✅ | 경로기반 옵션 예 `"FORCE_EVAL/DFT/SCF/EPS_SCF 1.0E-6"`(`&` 없이 `/` 구분 FULL PATH). list면 `parse_path_based_options`로 dict 변환. `COORD`/`CELL`/`KIND` 금지(NO SUBSYS) |
 | `selected` | `bool` | ⬜ | 기본 `True`. `False`면 제외 |
 | `exclude` | `bool` | ⬜ | 기본 `False`. `True`면 제외 |
+
+> ⚠️ **제외 상태의 단일 소스**: 프런트가 제외를 별도 오버라이드 맵(예: `excludedSteps`, 원본 인덱스 기준)으로 보관하면 **f3(/generate-inp)·f4(/submit-job)·모니터 표시에 모두 동일하게 반영**해야 한다. 한 곳(f3)에서만 `exclude`에 병합하고 다른 곳(f4 step-5)은 원본 `steps`를 그대로 쓰면, step-4에서 제외한 스텝이 step-5에서 되살아나 제출된다(실제 발생 버그). **권장**: 제외 토글이 `PlanStep.selected/exclude`를 직접 갱신해 모든 소비처가 단일 규칙(`selected !== false && exclude !== true`)만 적용하게 한다.
 | `active_tokens` | `List[str]` | ⬜ | **두 경로가 서로 다른 소비처임에 주의** (아래 박스 참조) |
 
 > ⚠️ **`active_tokens`의 이중 경로**
@@ -820,6 +822,10 @@ simulations/TiO2_geoopt_run/
 | `report` | `str` | ✅ | 마크다운 리포트 본문(LLM 또는 폴백 템플릿) |
 | `summary` | `Dict[str,Any]` | ✅ | 단일 = `{final_energy:str, target_property:str}`, 다중 = `{파일명:{energy:str, target_property:str}}`. 에러 시 `{}` |
 | `is_multi` | `bool` | ⬜ | 다중구조 비교 리포트일 때만 `true` |
+| `excitations` | `List[{state:int, energy_ev:float, wavelength_nm:float, osc_strength:float, is_dark:bool, region:str}]` | ⬜ | **absorption/emission(TDDFPT)에서만.** `.out`의 `TDDFPT\|` 표(`PHYSICS_PATTERNS["excitation"]`, 6캡처)에서 추출. `energy_ev`=g2, `osc_strength`=g6(f), `wavelength_nm`=`1239.84/energy_ev`, `is_dark`=`osc<1e-4`, `region`=가시광 영역 라벨. **에너지 오름차순(상태번호 순)**. 없으면 키 부재 |
+| `spectrum` | `{wavelengths:List[float], intensities:List[float], sigma_ev:float}` | ⬜ | **absorption/emission에서만.** Gaussian 브로드닝 곡선. `wavelengths`=파장 그리드(nm, 300→950 step 2), `intensities`=합산 강도, `sigma_ev`=0.1. 프런트 라인차트 데이터. 없으면 키 부재 |
+
+> **흡수/방출(TDDFPT) 전용**: `property`가 `absorption`/`emission`이고 `.out`에 `TDDFPT|` 들뜸 표가 있으면 `excitations[]`·`spectrum`이 추가된다. 프런트가 리포트 **맨 끝**에 흡광 스펙트럼 차트(막대=f, 라인=Gaussian) + 들뜸 상태 테이블로 렌더(`report_absorption.html` 형식). 다른 물성·다중-CIF 비교 분기에는 부재.
 
 - **produced_by**: `f5-report`
 - **consumed_by**: (없음 — 프런트엔드 최종 소비)
