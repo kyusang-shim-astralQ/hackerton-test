@@ -1,0 +1,142 @@
+/* features/f5-report/components/report-markdown.module.css
+   리포트 마크다운 prose 스타일 — Lab Paper 토큰만 사용(하드코딩 hex 금지, design-system §2).
+   Tailwind preflight 가 헤딩/리스트/표 스타일을 리셋하므로 .prose 스코프에서 복원한다. */
+
+.prose {
+  color: var(--ink);
+  font-size: var(--report-body, 14px);
+  line-height: 1.7;
+}
+
+/* 헤딩: 세리프(Fraunces) — design-system 타이포 역할 분리 */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.prose h1 {
+  font-size: 26px;
+  margin: 0 0 var(--s4);
+  padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--hairline);
+}
+.prose h2 {
+  font-size: 19px;
+  margin: var(--s8) 0 var(--s3);
+}
+.prose h3 {
+  font-size: 15px;
+  margin: var(--s6) 0 var(--s2);
+}
+.prose h1:first-child,
+.prose h2:first-child,
+.prose h3:first-child {
+  margin-top: 0;
+}
+
+.prose p {
+  margin: 0 0 var(--s4);
+  color: var(--ink-soft);
+}
+.prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* 리스트 */
+.prose ul,
+.prose ol {
+  margin: 0 0 var(--s4);
+  padding-left: var(--s6);
+  color: var(--ink-soft);
+}
+.prose li {
+  margin: var(--s1) 0;
+}
+.prose ul {
+  list-style: disc;
+}
+.prose ol {
+  list-style: decimal;
+}
+
+/* 인용구(blockquote) — accent 톤 admonition */
+.prose blockquote {
+  margin: 0 0 var(--s4);
+  padding: var(--s3) var(--s4);
+  border-left: 3px solid var(--accent);
+  background: var(--accent-wash);
+  border-radius: var(--r-sm);
+  color: var(--accent-ink);
+}
+.prose blockquote p {
+  margin: 0;
+  color: var(--accent-ink);
+}
+
+/* 코드 — 모노 + tabular-nums(수치 정렬) */
+.prose code {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9em;
+  background: var(--inset);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-sm);
+  padding: 1px 5px;
+}
+.prose pre {
+  background: var(--inset);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: var(--s4);
+  overflow-x: auto;
+  margin: 0 0 var(--s4);
+}
+.prose pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+/* 표 — report 변형(th 대문자 ink-faint, hover 행 강조) */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 var(--s4);
+  font-size: 13px;
+}
+.prose th,
+.prose td {
+  padding: var(--s2) var(--s3);
+  text-align: left;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.prose th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.prose td {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.prose tbody tr:hover {
+  background: var(--inset);
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: var(--s6) 0;
+}
