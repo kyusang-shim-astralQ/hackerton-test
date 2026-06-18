@@ -1,0 +1,151 @@
+/* app/globals.css — Lab Paper canonical tokens (source of truth: design-system.md §2.1) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* === Palette: paper surfaces === */
+  --paper:        #f6f5f1;   /* body 배경 (따뜻한 종이색) */
+  --card:         #fbfbf9;   /* 카드/레일/요약 패널 표면 (한 톤 밝게) */
+  --inset:        #f0efe9;   /* 인셋: 드롭존, plan-out, 호버 배경, 인풋 묶음 */
+
+  /* === Palette: ink (텍스트, 최강조→흐림) === */
+  --ink:          #1b1b1a;   /* 본문/제목 (거의 검정) */
+  --ink-soft:     #54524c;   /* 보조 텍스트 */
+  --ink-faint:    #6f6d66;   /* 메타/라벨 (10~12px) */
+
+  /* === Palette: hairlines (1px 보더로 표면 분리) === */
+  --hairline:     #d8d6cd;   /* 카드 보더 (가장 또렷) */
+  --hairline-2:   #cac8be;   /* 컨트롤 보더, 스크롤바 thumb */
+  --hairline-soft:#e6e4dd;   /* 아주 옅은 내부 구분선 전용 */
+
+  /* === Palette: accent (단일 딥인디고) === */
+  --accent:       #36367a;   /* 주 강조: 버튼, 활성 상태, 차트 라인, 아이콘 */
+  --accent-ink:   #2a2a63;   /* accent 호버/진한 텍스트 */
+  --accent-wash:  #ececf4;   /* accent 옅은 배경(현재 단계, 칩 on, ::selection) */
+  --accent-edge:  #c9c9e0;   /* accent 영역 보더 */
+
+  /* === Palette: ok (완료, muted ink-green) === */
+  --ok:           #3a5f3a;   /* "done"/수렴/유효 */
+  --ok-wash:      #e8efe7;   /* ok 옅은 배경(완료 step-dot, green 배지) */
+
+  /* === Palette: oxblood (절제된 위험/알림 — STOP에만) === */
+  --oxblood:      #7a2e2e;
+  --oxblood-wash: #f3e7e5;
+
+  /* === Type stacks (next/font 변수가 우선, 아래는 폴백) === */
+  --serif: var(--font-fraunces), "Fraunces", Georgia, "Noto Serif KR", serif;
+  --sans:  var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --mono:  var(--font-jetbrains), "JetBrains Mono", ui-monospace, "Cascadia Mono", "Consolas", monospace;
+
+  /* === Spacing: 8pt scale === */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --s8: 32px;
+
+  /* === Radius scale === */
+  --r-sm: 5px; --r-md: 8px; --r-lg: 12px; --r-pill: 999px;
+}
+
+/* 전역 베이스 */
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 13px;            /* 조밀한 콕핏 기준 폰트 */
+  line-height: 1.5;
+  letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;          /* 100vh 콕핏: 페이지는 스크롤 안 함, 내부만 (§4·§4.5) */
+}
+::selection { background: var(--accent-wash); }
+
+/* 모든 수치는 모노 + tabular-nums */
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* 키보드 접근성: focus-visible accent 링 */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-sm); }
+
+/* === 스크롤바 (페이퍼 톤) === */
+* { scrollbar-width: thin; scrollbar-color: var(--hairline-2) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--hairline-2); border-radius: var(--r-pill); border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* =========================================================================
+   3-존 콕핏 레이아웃 (design-system §4.1 + §4.5 CSS 함정)
+   함정 (a): 100vh 무스크롤 → 조상 전부 min-height:0 / 행은 minmax(0,1fr)
+   함정 (b): 동일 높이 카드는 height 금지, align-items:stretch만
+   함정 (c): 가로 그리드 2번째 카드 margin-top:0
+   ========================================================================= */
+.app {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 300px;
+  grid-template-rows: minmax(0, 1fr);
+  height: 100vh;
+  overflow: hidden;
+  transition: grid-template-columns 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.app.summary-collapsed {
+  grid-template-columns: 280px minmax(0, 1fr) 0;
+}
+
+/* 좌/우 존: 각자 내부 스크롤 */
+.rail, .summary {
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--card);
+}
+.rail { border-right: 1px solid var(--hairline); }
+.summary {
+  border-left: 1px solid var(--hairline);
+  position: relative;
+  transition: opacity 0.2s ease;
+}
+.app.summary-collapsed .summary { opacity: 0; pointer-events: none; }
+
+/* 가운데 존: flex 컬럼인데 자신도 grid 아이템 → min-height:0 필수 */
+.work {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.work-head { flex: none; } /* 고정 헤더 */
+.work-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+} /* 실제 스크롤 요소 */
+
+/* 세로 카드 리듬은 gap으로(§4.5 c). .card+.card 안티패턴 대신 부모 gap 사용 권장 */
+.cards-stack { display: flex; flex-direction: column; gap: var(--s4); }
+
+/* 2열 동일높이 카드: stretch가 맞춤 (height 금지, §4.5 b) */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s4); }
+.grid-2.cards { align-items: stretch; }
+.grid-2.cards > * { align-self: stretch; margin-top: 0; }
+
+/* 라이브 커서 blink (LogTerminal) */
+@keyframes term-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+/* 상태 펄스 링 (StatusBadge) */
+@keyframes ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+/* 패널 페이드 인 (단계 전환) */
+@keyframes panel-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.panel-fade { animation: panel-fade 0.24s cubic-bezier(0.4, 0, 0.2, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

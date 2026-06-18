@@ -1,0 +1,193 @@
+// lib/i18n/f2-plan.ts — f2-plan(물성 선택 + DFT 옵션 + AI 플랜) 사전. 소유: f2 담당.
+// 단일 소스: docs/design-system.md §6. import 시점에 registerDict 로 등록(side-effect).
+// property 키는 data-models.md 표준 12종과 1:1.
+import { registerDict, type LangDict } from "./registry";
+
+export const f2PlanDict: LangDict = {
+  ko: {
+    // ── step-2 물성 선택 ─────────────────────────────────────────
+    "f2.prop.heading": "계산할 물성 (하나만 선택)",
+    "f2.prop.hint": "타깃 물성 하나를 고르면 그에 맞는 CP2K 워크플로우를 AI가 설계합니다.",
+
+    "f2.cat.static": "정적 구조 · 에너지",
+    "f2.cat.dynamic": "동역학 · 열적",
+    "f2.cat.reactivity": "화학 반응성",
+    "f2.cat.optical": "광학",
+    "f2.cat.electronic": "전자 · 전하",
+    "f2.cat.other": "기타",
+
+    "f2.prop.geo_opt": "구조 최적화",
+    "f2.prop.geo_opt.desc": "원자 위치를 이완해 평형 구조 탐색 (GEO_OPT)",
+    "f2.prop.single_point": "단일점 에너지",
+    "f2.prop.single_point.desc": "고정 구조의 전체 에너지 1회 계산 (ENERGY)",
+    "f2.prop.dos": "상태 밀도 (DOS)",
+    "f2.prop.dos.desc": "에너지별 전자 상태 분포",
+    "f2.prop.band": "밴드 구조",
+    "f2.prop.band.desc": "역격자 경로 따라 에너지 밴드",
+    "f2.prop.aimd": "분자동역학 (AIMD)",
+    "f2.prop.aimd.desc": "유한 온도에서 원자 시간 전개 (MD)",
+    "f2.prop.vibrational": "진동 분석 (포논)",
+    "f2.prop.vibrational.desc": "정상 모드 · 주파수 (VIBRATIONAL_ANALYSIS)",
+    "f2.prop.neb": "반응 경로 (NEB)",
+    "f2.prop.neb.desc": "전이 상태 · 활성화 장벽 탐색",
+    "f2.prop.adsorption": "흡착 에너지",
+    "f2.prop.adsorption.desc": "표면-흡착물 결합 에너지",
+    "f2.prop.work_function": "일함수",
+    "f2.prop.work_function.desc": "표면 전위 · 진공 준위 정렬",
+    "f2.prop.hirshfeld": "전하 분석 (Hirshfeld)",
+    "f2.prop.hirshfeld.desc": "원자별 부분 전하",
+    "f2.prop.absorption": "흡수 스펙트럼",
+    "f2.prop.absorption.desc": "TDDFPT 들뜸 → 흡광 스펙트럼",
+    "f2.prop.emission": "방출 스펙트럼",
+    "f2.prop.emission.desc": "들뜬 상태 완화 → 방출",
+
+    "f2.prop.selected": "선택됨",
+    "f2.optical.note":
+      "광학 물성(흡수/방출)은 TDDFPT 경로를 사용하므로 SCF가 자동으로 DIAGONALIZATION으로 고정됩니다.",
+
+    // ── step-3 DFT 옵션 ──────────────────────────────────────────
+    "f2.opt.electronic.title": "전자 구조 설정",
+    "f2.opt.scf.title": "SCF 수렴 설정",
+
+    "f2.opt.functional": "교환-상관 범함수",
+    "f2.opt.basis_set": "기저 함수 세트",
+    "f2.opt.pseudo": "유사퍼텐셜",
+    "f2.opt.cutoff": "평면파 컷오프 (Ry)",
+    "f2.opt.rel_cutoff": "상대 컷오프 (Ry)",
+    "f2.opt.spin": "스핀 분극",
+    "f2.opt.spin.rks": "RKS (제한)",
+    "f2.opt.spin.uks": "UKS (비제한)",
+
+    "f2.opt.eps_scf": "EPS_SCF (수렴 기준)",
+    "f2.opt.max_scf": "최대 SCF 반복",
+    "f2.opt.scf_algo": "SCF 알고리즘",
+    "f2.opt.mixing": "혼합 방식",
+    "f2.opt.smear": "스미어링 (Fermi-Dirac)",
+    "f2.opt.smear.on": "사용",
+    "f2.opt.smear.off": "끔",
+    "f2.opt.smear_temp": "전자 온도 (K)",
+    "f2.opt.optimizer": "최적화기",
+    "f2.opt.smear.recommended": "이 구조는 스미어링이 권장됩니다",
+
+    // ── AI 계산 플랜 ─────────────────────────────────────────────
+    "f2.plan.title": "AI 계산 플랜",
+    "f2.plan.sub": "Claude · 2단계 설계",
+    "f2.plan.generate": "플랜 생성",
+    "f2.plan.regenerate": "다시 생성",
+    "f2.plan.intro":
+      "현재 구조와 옵션을 바탕으로 AI가 멀티스텝 CP2K 계산 플랜을 설계합니다. 좌석당 수 시간의 입력 셋업을 분 단위로 줄입니다.",
+    "f2.plan.loading": "AI가 시스템 특성을 분석하고 플랜을 설계하는 중…",
+    "f2.plan.expert_tip": "전문가 팁",
+    "f2.plan.steps_count": "{n}단계",
+    "f2.plan.step_idx": "단계 {n}",
+    "f2.plan.empty_steps":
+      "AI 응답에서 유효한 단계를 파싱하지 못했습니다(기본 설정 로드). 옵션을 조정해 다시 생성해 보세요.",
+    "f2.plan.need_structure": "먼저 1단계에서 구조 파일을 업로드하세요.",
+    "f2.plan.need_property": "먼저 2단계에서 물성을 선택하세요.",
+    "f2.plan.error": "플랜 생성 실패",
+    "f2.plan.next_hint": "플랜이 준비되었습니다. [다음]으로 4단계에서 확정하세요.",
+
+    // ── 플래너 로그 ──────────────────────────────────────────────
+    "f2.log.title": "플래너 로그",
+    "f2.log.start": "플랜 생성 요청 준비 중…",
+    "f2.log.payload": "PlanRequest 조립 (property={prop}, functional={func}, cutoff={cut} Ry)",
+    "f2.log.strip": "대용량 좌표 텍스트 제거(비용 절감) 후 atom_info 전송",
+    "f2.log.call": "POST /generate-plan 호출 (Claude 2단계: 키워드 추출 → 정밀 설계)",
+    "f2.log.mock": "목 모드: 시드 PlanResult 로 응답 (NEXT_PUBLIC_MOCK=1)",
+    "f2.log.ok": "{n}단계 플랜 수신 · atom_info 에코 확인(SSOT)",
+    "f2.log.fallback": "AI JSON 파싱 폴백: steps=[] · expert_tip 폴백 문구",
+    "f2.log.fail": "오류: {msg}",
+  },
+  en: {
+    "f2.prop.heading": "Target property (select one)",
+    "f2.prop.hint": "Pick one target property; the AI designs the matching CP2K workflow.",
+
+    "f2.cat.static": "Static structure · energy",
+    "f2.cat.dynamic": "Dynamics · thermal",
+    "f2.cat.reactivity": "Reactivity",
+    "f2.cat.optical": "Optical",
+    "f2.cat.electronic": "Electronic · charge",
+    "f2.cat.other": "Other",
+
+    "f2.prop.geo_opt": "Geometry optimization",
+    "f2.prop.geo_opt.desc": "Relax atomic positions to equilibrium (GEO_OPT)",
+    "f2.prop.single_point": "Single-point energy",
+    "f2.prop.single_point.desc": "One total-energy evaluation at fixed geometry (ENERGY)",
+    "f2.prop.dos": "Density of states (DOS)",
+    "f2.prop.dos.desc": "Electronic state distribution vs energy",
+    "f2.prop.band": "Band structure",
+    "f2.prop.band.desc": "Energy bands along reciprocal path",
+    "f2.prop.aimd": "Molecular dynamics (AIMD)",
+    "f2.prop.aimd.desc": "Finite-temperature time evolution (MD)",
+    "f2.prop.vibrational": "Vibrational (phonon)",
+    "f2.prop.vibrational.desc": "Normal modes · frequencies (VIBRATIONAL_ANALYSIS)",
+    "f2.prop.neb": "Reaction path (NEB)",
+    "f2.prop.neb.desc": "Transition state · activation barrier",
+    "f2.prop.adsorption": "Adsorption energy",
+    "f2.prop.adsorption.desc": "Surface-adsorbate binding energy",
+    "f2.prop.work_function": "Work function",
+    "f2.prop.work_function.desc": "Surface potential · vacuum-level alignment",
+    "f2.prop.hirshfeld": "Charge analysis (Hirshfeld)",
+    "f2.prop.hirshfeld.desc": "Per-atom partial charges",
+    "f2.prop.absorption": "Absorption spectrum",
+    "f2.prop.absorption.desc": "TDDFPT excitations → absorption",
+    "f2.prop.emission": "Emission spectrum",
+    "f2.prop.emission.desc": "Excited-state relaxation → emission",
+
+    "f2.prop.selected": "Selected",
+    "f2.optical.note":
+      "Optical properties (absorption/emission) use the TDDFPT path, so SCF is fixed to DIAGONALIZATION automatically.",
+
+    "f2.opt.electronic.title": "Electronic structure",
+    "f2.opt.scf.title": "SCF convergence",
+
+    "f2.opt.functional": "XC functional",
+    "f2.opt.basis_set": "Basis set",
+    "f2.opt.pseudo": "Pseudopotential",
+    "f2.opt.cutoff": "Plane-wave cutoff (Ry)",
+    "f2.opt.rel_cutoff": "Relative cutoff (Ry)",
+    "f2.opt.spin": "Spin polarization",
+    "f2.opt.spin.rks": "RKS (restricted)",
+    "f2.opt.spin.uks": "UKS (unrestricted)",
+
+    "f2.opt.eps_scf": "EPS_SCF (criterion)",
+    "f2.opt.max_scf": "Max SCF iterations",
+    "f2.opt.scf_algo": "SCF algorithm",
+    "f2.opt.mixing": "Mixing method",
+    "f2.opt.smear": "Smearing (Fermi-Dirac)",
+    "f2.opt.smear.on": "On",
+    "f2.opt.smear.off": "Off",
+    "f2.opt.smear_temp": "Electronic temperature (K)",
+    "f2.opt.optimizer": "Optimizer",
+    "f2.opt.smear.recommended": "Smearing is recommended for this structure",
+
+    "f2.plan.title": "AI calculation plan",
+    "f2.plan.sub": "Claude · 2-stage design",
+    "f2.plan.generate": "Generate plan",
+    "f2.plan.regenerate": "Regenerate",
+    "f2.plan.intro":
+      "The AI designs a multi-step CP2K plan from the current structure and options, cutting hours of input setup down to minutes.",
+    "f2.plan.loading": "AI is analyzing the system and designing the plan…",
+    "f2.plan.expert_tip": "Expert tip",
+    "f2.plan.steps_count": "{n} stages",
+    "f2.plan.step_idx": "Step {n}",
+    "f2.plan.empty_steps":
+      "No valid steps were parsed from the AI response (defaults loaded). Adjust options and regenerate.",
+    "f2.plan.need_structure": "Upload a structure file in Step 1 first.",
+    "f2.plan.need_property": "Select a property in Step 2 first.",
+    "f2.plan.error": "Plan generation failed",
+    "f2.plan.next_hint": "Plan is ready. Continue with [Next] to confirm it in Step 4.",
+
+    "f2.log.title": "Planner log",
+    "f2.log.start": "Preparing plan request…",
+    "f2.log.payload": "Assembling PlanRequest (property={prop}, functional={func}, cutoff={cut} Ry)",
+    "f2.log.strip": "Stripping bulky coordinate text (cost saving), sending atom_info",
+    "f2.log.call": "POST /generate-plan (Claude 2-stage: keyword extraction → precise design)",
+    "f2.log.mock": "Mock mode: responding with seeded PlanResult (NEXT_PUBLIC_MOCK=1)",
+    "f2.log.ok": "Received {n}-step plan · atom_info echo verified (SSOT)",
+    "f2.log.fallback": "AI JSON parse fallback: steps=[] · fallback expert_tip",
+    "f2.log.fail": "Error: {msg}",
+  },
+};
+
+registerDict(f2PlanDict);
