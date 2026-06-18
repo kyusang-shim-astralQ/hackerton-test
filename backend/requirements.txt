@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+anthropic
+ase
+python-dotenv
+pydantic
+paramiko
+lxml
+python-multipart

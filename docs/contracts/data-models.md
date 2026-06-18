@@ -931,7 +931,7 @@ simulations/TiO2_geoopt_run/
 
 | key | type | required | notes |
 |-----|------|:--------:|-------|
-| `status` | `str` | ✅ | `'Idle'`(초기), `'Running'`, `'Finished'`(종료 시 finally), `'Failure'`(루프 치명 오류) |
+| `status` | `str` | ✅ | `'Idle'`(초기), `'Running'`, `'Finished'`(종료 시 finally), `'Failure'`(루프 치명 오류), `'Stopped'`(`/api/benchmark/stop` 중지 시 — api.md §3·빌드프롬프트 §G) |
 | `current_level` | `int` | ✅ | 현재 레벨(0=시작 전, 1~12) |
 | `total_levels` | `int` | ✅ | `12` 고정 |
 | `reports` | `List[`[`BenchmarkLevelReport`](#20-benchmarklevelreport)`]` | ✅ | 레벨별 결과 12슬롯. `reports[level-1]`에 저장 |
@@ -966,7 +966,7 @@ simulations/TiO2_geoopt_run/
 | key | type | required | notes |
 |-----|------|:--------:|-------|
 | `level` | `int` | ✅ | 1~12 |
-| `status` | `str` | ✅ | `'Pending'`, `'Running'`, `'Recovering...'`, `'SUCCESS'`, `'INCORRECT'`, `'FAILURE'`, `'Skipped'` |
+| `status` | `str` | ✅ | `'Pending'`, `'Running'`, `'Recovering...'`, `'SUCCESS'`, `'INCORRECT'`, `'FAILURE'`, `'Skipped'`, `'Aborted'`(중지 시점에 실행 중이던 현재 레벨 — api.md §3) |
 | `agent_energy` | `float \| null` | ✅ | 에이전트 계산 에너지/물성치(레벨별 의미 다름) |
 | `official_energy` | `float \| null` | ✅ | 공식 기준 에너지/물성치 |
 | `diff` | `float \| null` | ✅ | 상대 오차(%) = `abs((agent-official)/denom)*100` |
