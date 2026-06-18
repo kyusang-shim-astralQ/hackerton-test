@@ -67,7 +67,7 @@
 - `sig = match_groups.get("signature")`. `if sig and sig in knowledge and sig != 696b03...:` → `fix_dict = parse_path_based_options(knowledge[sig]["fixes"])` → `_deep_update(options, fix_dict)` → 로그 `[f"경험 기반 처방 적용: {knowledge[sig].get('reason','검증된 해결책')}"]` → `(options, logs)`. 아니면 `(options, [])`. (★ `@PARAM/` 분리 **없음** — fixes를 통째로 트리에 병합.)
 
 **B-4. `heal_with_ai(options, log_tail, retry_count=0, previous_fixes=None, job_dir=None, failure_history=None, ai_meta=None, lang) → (new_options, logs, msg)` (3-튜플)**:
-1. **스마트 캐시**: `sig = _get_log_signature(log_tail)`; `if sig in knowledge:`(여기엔 ghost-guard 없음, reference 그대로) KB fix 적용 → `validate_and_correct(options, mandatory_params={"atom_info": ai_meta, **ai_meta})` → `(sanitized, [desc], detail)` 반환.
+1. **스마트 캐시**: `sig = _get_log_signature(log_tail)`; **`if sig in knowledge and sig != UNKNOWN_SIGNATURE:`** KB fix 적용 → `validate_and_correct(options, mandatory_params={"atom_info": ai_meta, **ai_meta})` → `(sanitized, [desc], detail)` 반환. **★ `UNKNOWN_SIGNATURE`(=md5("UNKNOWN")) 제외 필수**: 파싱 불가한 모든 에러가 이 한 버킷으로 collapse 되므로, 여기 캐시된 처방(예 AIMD)이 무관한 에러(geo_opt 등)에 교차 적용되는 **오발사**가 난다. `diagnose`/KB `heal`이 이미 `!= UNKNOWN_SIGNATURE` 가드를 두므로 `heal_with_ai` 캐시도 동일하게 가드한다(reference의 "ghost-guard 없음"은 이 버그를 유발 — 의도적으로 정정).
 2. `if failure_history and not previous_fixes: previous_fixes = failure_history`.
 3. **로그 압축**(`_compress_log`): `len(lines) > 200`일 때만. header=`lines[:50]`, footer=`lines[-70:]`, 마지막 `"SCF WAVEFUNCTION OPTIMIZATION"` 줄부터 **100줄** 발췌. 배너 `--- [LOG HEADER] ---`, `... (intermediate logs omitted) ...`, `--- [LAST SCF CONVERGENCE TABLE] ---`, `--- [ERROR MESSAGE & STACK TRACE] ---`. (reference 특이점: 압축 결과를 만들지만 프롬프트엔 **원본 `log_tail`을 그대로** 넣는다 — 그대로 따른다.)
 4. **현재 `.inp` 읽기**: `step1.inp` 우선, 없으면 마지막 `*.inp` 정렬, 없으면 `build_full_inp(options, {"atoms":[]}, step_idx=1)`.
@@ -87,7 +87,7 @@
 
 **B-5. `validate_and_correct(options, mandatory_params) → (new_options, logs)`**: `schema_engine.validate_and_relocate(options, mandatory_params)` → 결과에 `physics_rules.apply_physics_rules(new_options)` → 로그 병합(physics_logs 있으면 합치고, 둘 다 없으면 `["✅ [Integrity] 수정 불필요 (무결함)"]`). **단일 패스**(3-pass 루프는 §C-2 `_submit_step` 안에서 돈다, build_full_inp 아님).
 
-**B-6. `record_success()`**: `last_attempt` 있으면 `knowledge[last_attempt["signature"]] = {"reason": last_attempt["reason"], "fixes": last_attempt["fixes"]}` → `_save_knowledge()`(JSON 저장) → `delattr(self,'last_attempt')`.
+**B-6. `record_success()`**: `last_attempt` 있고 **`signature != UNKNOWN_SIGNATURE`일 때만** `knowledge[sig] = {"reason":..., "fixes":...}` → `_save_knowledge()`; 그 후 (저장 여부와 무관하게) `delattr(self,'last_attempt')`. **★ UNKNOWN 버킷에 저장 금지**: 무관한 에러가 모두 collapse 되는 키라, 저장하면 B-4 캐시가 다른 에러에 오발사하는 오염의 원천이 된다.
 
 **B-7. `get_retry_filenames(step_dir, base_inp, retry_count) → (step_dir, "{name}_retry_{n}.inp", "{name}_retry_{n}.sh")`** (`name = base_inp.replace(".inp","")`). out 파일명 `{name}_retry_{n}.out`는 호출부(§C-2)에서 따로 만든다.
 
@@ -152,7 +152,7 @@ echo "[SYSTEM] Calculation Finished: $(date)" >> cp2k_run.log
 - `step_dir`, `out_file = {step_dir}/step{idx}{('_retry_'+n) if retry>0 else ''}.out`. `grace_period_count` 초기 0, `last_state="none"`.
 - **루프(폴링 10초)**: 매 회 `target_job["status"]=="aborted"`면 break. **`qstat`(SSH)** 실행.
   - qstat returncode≠0 → `state = last_state if last_state != "none" else "qw"`(전 상태 유지, finished로 단정 금지).
-  - 파싱: `state_match = re.search(rf"{job_id}\s+\S+\s+\S+\s+\S+\s+(\S+)", stdout)`(job_id + 4컬럼 후 **5번째**가 state). 매치면 `state=group(1)`, `grace_period_count=10`. 미매치면 `if grace_period_count < 6 and not os.path.exists(out_file): state="qw"; grace_period_count+=1`(등록 지연 ~60s 유예) **else** `state="finished"`.
+  - 파싱: `state_match = re.search(rf"{job_id}\s+\S+\s+\S+\s+\S+\s+(\S+)", stdout)`(job_id + 4컬럼 후 **5번째**가 state). 매치면 `state=group(1)`, `grace_period_count=10`. 미매치면(큐에서 사라짐) **종료 마커가 있을 때만 finished**: `out_done = os.path.exists(out_file) and any(m in out_file_tail for m in ("PROGRAM ENDED","PROGRAM STOPPED","[ABORT]"))`; `if out_done or grace_period_count >= 6: state="finished"` **else** `state="qw"; grace_period_count+=1`. ★ **`.out`이 '존재'만으로 finished 단정 금지**: qstat 일시 누락 + 부분 .out 일 때 회수를 조기 중단해 **잘린 .out**을 남긴다(잡은 클러스터에서 계속 도는데 로컬은 truncate). 마커 없으면 grace(6폴) 끝까지 계속 폴링·회수.
   - `state=="r"`(또는 finished+out 존재) 시 `.out` 읽어 `_parse_live_data`(아래) → 히스토리/진행률/로그 갱신, `_save_db()`. `last_state=state`.
   - `state=="finished"`면: `.out` 등장 대기 `for _ in range(6): if exists break; time.sleep(5)`(최대 30s); 없으면 status `"aborted"` 후 break. 있으면 `log_tail = "".join(readlines()[-500:])`(마지막 500줄) → `diag_id, match_groups, human = healing_engine.diagnose(log_tail, lang)` → break.
   - 루프 끝 `time.sleep(10)`. 예외도 `time.sleep(10)` 후 continue(치명 아님). **전체 모니터에 wall-clock 타임아웃 없음** — 큐 이탈 또는 aborted로만 종료(≤3은 **재시도** 한도이지 모니터 시간 제한 아님).

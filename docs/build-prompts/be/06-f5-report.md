@@ -21,7 +21,7 @@
   - **단계별 수렴 이력**: `.out`(또는 f4가 남긴 step_histories)에서 스텝별 SCF/에너지 → 리포트 표/차트 데이터.
   - 결과가 로컬에 없고 원격에만 있으면 f4의 회수를 트리거하거나 SSH로 직접 읽는다.
 - 추출 수치를 **report-prompt에 채워 `app/core/llm` 호출** → 마크다운 `report` + `summary{final_energy, target_property}` 생성.
-- **다중-CIF**(`multi_metadata.json` 존재)면 `is_multi=true`로 구조별 결과를 모아 **구조 간 비교 리포트**(구조별 final_energy/물성 비교 표 + 구조 탭).
+- **다중-CIF**(`multi_metadata.json` 존재)면 `is_multi=true`로 구조별 결과를 모아 **구조 간 비교 리포트**(구조별 final_energy/물성 비교 표 + 구조 탭). **★ 구조별 산출물 디렉토리 매핑(필수 일치)**: `sub_jobs[].filename`("Compound 2.cif")을 디렉토리명으로 바꿀 때 **공백을 언더스코어(`_`)로 치환**해야 한다 — 잡 디렉토리 생성 규약(`inp.service._base_from_filename`의 `filename.replace(" ","_")`)과 동일. **공백을 '제거'하면(`Compound2`) 실제 디렉토리(`Compound_2`)와 불일치해 산출물을 못 찾고 전 구조가 N/A로 빈 리포트**가 된다. (즉 `_safe_name`은 확장자 제거 → `" "→"_"` → 안전문자만 남김.)
 - **폴백(데모 안전망)**: 결과 파일/키가 **없을 때만** → `ReportData` 형태 **샘플 리포트**로 폴백하되, 본문에 "샘플(실측 아님)"임을 명시. (실제 `.out`이 있으면 반드시 실측 기반 리포트.)
 - **리포트 형식(7섹션 — `report_absorption.html` 구조)**: report-prompt(단일)/comparative-report-prompt(다중)가 **1.요약 2.계산 대상 구조 3.계산 방법 4.물성 데이터 5.결과 해석 6.계산 품질 평가 7.권장 후속**의 마크다운을 생성. §4는 **단일=타겟 물성 결과표 / 다중=구조별 주요 물성 종합 비교 표**(행=구조, 열=전체에너지+타겟 물성 핵심수치+영역/분류, 동일에너지면 isostructural 해석 노트).
 - **★ 흡수/방출(absorption·emission, TDDFPT) 물성 — 흡광 스펙트럼 데이터(리포트 맨 끝 차트용)**: `.out`의 `TDDFPT|` 들뜸 표를 `PHYSICS_PATTERNS["excitation"]`(정규식 `r"TDDFPT\|\s+(\d+)\s+([-+]?\d*\.\d+|\d+)\s+([-+]?\d*\.?\d+(?:E[-+]\d+)?)\s+([-+]?\d*\.?\d+(?:E[-+]\d+)?)\s+([-+]?\d*\.?\d+(?:E[-+]\d+)?)\s+([-+]?\d*\.?\d+(?:E[-+]\d+)?)"`; 6캡처 = 상태번호·energy(eV)·dipole x·y·z·oscillator f)를 `re.findall`로 **전부** 수집해 응답에 두 구조화 필드를 추가한다:

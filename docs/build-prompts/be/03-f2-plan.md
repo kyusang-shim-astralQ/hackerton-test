@@ -31,13 +31,28 @@
 - 응답에서 `tokens = ["GLOBAL","DFT","SCF","MGRID","XC"]`(BASE)로 시작; `forbidden_tokens = ["SMEAR"] if not req.use_smear else []`. `TOKENS:` 든 줄을 `[`/`]` 제거 후 `,` 분리, `.strip().upper()`, forbidden 제외하고 `tokens`에 추가.
 - `tokens.extend(ui_tokens)`. `req.active_tokens` 있으면(벤치마크 등) `tokens.extend([t.upper() for t in active_tokens])`.
 
-**3. `xml_context` 구성** (★ 핵심 그라운딩):
+**3. `xml_context` 구성** (★★ 최우선 — inp 생성 그라운딩의 핵심. 빈 문자열이면 LLM이 스키마 없이 inp_options를 지어냄):
 ```python
+# ★ import 를 정확히: 싱글톤 이름은 engine 이다. 모듈에 `schema_engine` 이라는 이름은 없다.
+#   (be/04 에 `engine = CP2KSchemaEngine()` + 모듈함수 `get_manual_snippet` 둘 다 있음)
+from app.shared.schema_engine import engine          # ✅ 권장
+# from app.shared.schema_engine import get_manual_snippet  # ✅ 모듈함수도 가능
+# from app.shared.schema_engine import schema_engine       # ❌ ImportError! (그런 이름 없음)
+
+def _get_snippet(token: str) -> str:
+    try:
+        return engine.get_manual_snippet(token) or ""
+    except Exception:
+        return ""   # ← 광범위 except 가 import 오류를 삼켜 xml_context 가 항상 ""가 되던 버그 주의
+
 xml_context = ""
 for t in sorted(set(tokens)):
-    snippet = schema_engine.get_manual_snippet(t)   # be/04
-    if snippet: xml_context += snippet + "\n---\n"
+    snippet = _get_snippet(t)
+    if snippet:
+        xml_context += snippet + "\n---\n"
 ```
+
+> ⚠️ **과거 회귀 버그(반드시 회피):** 구현이 `from app.shared.schema_engine import schema_engine`(존재하지 않는 이름)로 import → `ImportError` → 위 `except`가 삼켜 **모든 토큰의 xml_context 가 빈 문자열**이 되어 LLM이 스키마 그라운딩 **없이** 동작했다. 반드시 `engine`(싱글톤) 또는 모듈함수 `get_manual_snippet`를 쓰고, 빌드 후 **xml_context 길이 > 0** 을 실제로 검증할 것.
 
 **4. 2단계 — 정밀 플랜 설계** (`UNIFIED_PROMPT`, system; `max_tokens=8000`, system에 `cache_control:{type:"ephemeral"}`):
 - `system_prompt = UNIFIED_PROMPT.replace("{xml_context}", xml_context).replace("{active_tokens}", ", ".join(set(tokens))).replace("{user_config}", user_config)`(★ `str.format` 아님 — `.replace`로 치환해 JSON `{{ }}` 충돌 회피). `lang=="en"`이면 reference처럼 한글 지시문/JSON 라벨을 영어로 치환 + 영어 가이드 덧붙임.
@@ -50,7 +65,8 @@ for t in sorted(set(tokens)):
 **router.py**: `POST /generate-plan` → `{atom_info, steps[], expert_tip}`.
 
 ### 완료 정의 (DoD)
-- [ ] **2단계 흐름**: 1단계 `KEYWORD_EXTRACTION_PROMPT`로 토큰 추출 → BASE+PROPERTY_SECTION_MAP+OPTION_TOKEN_MAP+active_tokens 합치고 use_smear OFF면 SMEAR 제외 → 토큰별 `schema_engine.get_manual_snippet`로 **`xml_context` 채움(빈 문자열 아님)** → `UNIFIED_PROMPT`로 2단계 호출.
+- [ ] **2단계 흐름**: 1단계 `KEYWORD_EXTRACTION_PROMPT`로 토큰 추출 → BASE+PROPERTY_SECTION_MAP+OPTION_TOKEN_MAP+active_tokens 합치고 use_smear OFF면 SMEAR 제외 → 토큰별 `get_manual_snippet`로 **`xml_context` 채움** → `UNIFIED_PROMPT`로 2단계 호출.
+- [ ] **★ xml_context 그라운딩 실증**: `engine`(또는 모듈함수 `get_manual_snippet`)로 import — `from ... import schema_engine`(없는 이름) 금지. 빌드 후 대표 토큰(CELL/SCF/OT/GEO_OPT 등)으로 **`get_manual_snippet` 반환 길이 > 0** 이고 최종 `xml_context`가 비어있지 않음을 실제로 확인(예: geo_opt 토큰 합계 수천 자).
 - [ ] `UNIFIED_PROMPT`의 `{xml_context}`/`{active_tokens}`/`{user_config}`를 `.replace`로 주입(format 아님), JSON 견고 파싱(`clean_json_string`).
 - [ ] 응답이 `PlanResult`(`{atom_info, steps[], expert_tip}`) 계약과 일치, `inp_options`는 `&` 없는 풀 경로형.
 - [ ] 키 없을 때 목 폴백으로 흐름 유지.
